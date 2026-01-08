@@ -16,5 +16,4 @@ fs.readdirSync(pathRouter).filter((file) => {
     }
 });
 
-
 module.exports = router;

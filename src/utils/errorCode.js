@@ -1,0 +1,9 @@
+const errorCode = {
+    VALIDATION_ERR: "VALIDATION_ERROR",
+    AUTH_ERR: "AUTHENTICATION_ERROR",
+    NOT_FOUND_ERR: "NOT_FOUND_ERROR",
+    SERVER_ERR: "SERVER_ERROR",
+    TIMEOUT_ERR: "TIMEOUT_ERROR",
+}
+
+module.exports = errorCode;
