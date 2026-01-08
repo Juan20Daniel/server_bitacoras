@@ -12,7 +12,7 @@ const checkField = (field, required=true) => {
     return (req, res, next) => {
         const searchResult = searchField(req, field);
         if(!required && !searchResult) return next();
-        if(!searchResult) return res.status(500).json({ errorCode: errorCode.VALIDATION_ERR });
+        if(!searchResult) return res.status(500).json({ errorCode: errorCode.VALIDATION_ERR, field });
         if(!regexr[field].test(searchResult)) return res.status(500).json({ errorCode: errorCode.VALIDATION_ERR, field });
         next();
     }
