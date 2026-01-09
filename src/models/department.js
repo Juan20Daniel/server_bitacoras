@@ -4,22 +4,22 @@ const { sequelizeConfig } = require('../database/sequelizeConfig');
 const Department = sequelizeConfig.define(
     'Department',
     {
-        id_department: {
+        departmentId: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,    
         },
         city: {
-            type: DataTypes.STRING(40),
-            allowNull: false
+            type: DataTypes.ENUM('Manzanillo','Colima','Chavarin'),
+            defaultValue: 'Manzanillo'
         },
-        type: {
+        school_type: {
             type: DataTypes.ENUM('Universidad','Bachillerato'),
             allowNull: false
         },
-        department_name: {
-        type: DataTypes.STRING(40),
-        allowNull: false
+        name: {
+            type: DataTypes.STRING(40),
+            allowNull: false
         },
     },
     {

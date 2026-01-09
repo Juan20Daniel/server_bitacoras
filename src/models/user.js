@@ -4,7 +4,7 @@ const { sequelizeConfig } = require('../database/sequelizeConfig');
 const User = sequelizeConfig.define(
     'User',
     {
-        id_user: {
+        userId: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
@@ -26,9 +26,13 @@ const User = sequelizeConfig.define(
             type: DataTypes.STRING(100),
             allowNull: false,
         },
-        role: {
-            type: DataTypes.ENUM('admin','basic','rrhh','operator'),
+        active: {
+            type: DataTypes.BOOLEAN,
             allowNull: false,
+            defaultValue: true
+        },
+        role: {
+            type: DataTypes.ENUM('basic','rrhh','operator','admin'),
             defaultValue: 'basic',
         }
     },
