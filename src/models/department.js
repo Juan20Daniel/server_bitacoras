@@ -4,7 +4,7 @@ const { sequelizeConfig } = require('../database/sequelizeConfig');
 const Department = sequelizeConfig.define(
     'Department',
     {
-        departmentId: {
+        id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,    

@@ -4,7 +4,7 @@ const { sequelizeConfig } = require('../database/sequelizeConfig');
 const CheckOutTimeVehicular = sequelizeConfig.define(
     'CheckOutTimeVehicular',
     {
-        id_check_out_vehi: {
+        id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true

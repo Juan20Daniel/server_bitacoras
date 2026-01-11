@@ -1,4 +1,4 @@
-const User = require('./user');
+const Staff = require('./staff');
 const Department = require('./department');
 const Vehicle = require('./vehicle');
 const CheckOutTime = require('./checkOutTime');
@@ -7,14 +7,15 @@ const Equipment = require('./equipment');
 const EquipmentStatic = require('./equipmentStatic');
 const EquipmentVariable = require('./equipmentVariable');
 const EquipmentFeatures = require('./equipmentFeatures');
+const EquipmentHistory = require('./equipmentHistory');
 
 //Relation between Department and User
-Department.hasOne(User, {foreignKey:'departmentId'});
-User.belongsTo(Department, {foreignKey:'departmentId'});
+Department.hasOne(Staff, {foreignKey:'department_id'});
+Staff.belongsTo(Department, {foreignKey:'department_id'});
 
 //Relation between User and CheckOutTime
-User.hasMany(CheckOutTime, {foreignKey: 'id_user'});
-CheckOutTime.belongsTo(User, {foreignKey:'id_user'});
+Staff.hasMany(CheckOutTime, {foreignKey: 'id_staff'});
+CheckOutTime.belongsTo(Staff, {foreignKey:'id_staff'});
 
 //Relation between CheckOutTime and CheckOutTimeVehicular
 CheckOutTime.hasOne(CheckOutTimeVehicular, {foreignKey: 'id_check_out'});
@@ -36,8 +37,25 @@ EquipmentVariable.belongsTo(Equipment, {foreignKey: 'id_equipment'});
 Equipment.hasMany(EquipmentFeatures, {foreignKey: 'id_equipment'});
 EquipmentFeatures.belongsTo(Equipment, {foreignKey: 'id_equipment'});
 
+//Relation between Equipment and User
+Equipment.belongsToMany(Staff, {
+    through:'staff_equipment',
+    foreignKey:'id_equipment',
+    otherKey: 'id_staff'
+});
+
+Staff.belongsToMany(Equipment, {
+    through:'staff_equipment',
+    foreignKey:'id_staff',
+    otherKey: 'id_equipment'
+});
+
+//Relation between Department and EquipmentHistory
+Department.hasMany(EquipmentHistory, {foreignKey: 'id_department'});
+EquipmentHistory.belongsTo(Department, {foreignKey: 'id_department'});
+
 module.exports = {
-    User,
+    Staff,
     Department,
     Vehicle,
     CheckOutTime,
@@ -45,5 +63,6 @@ module.exports = {
     Equipment,
     EquipmentStatic,
     EquipmentVariable,
-    EquipmentFeatures
+    EquipmentFeatures,
+    EquipmentHistory
 };

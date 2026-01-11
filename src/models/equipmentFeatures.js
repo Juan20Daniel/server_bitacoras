@@ -4,7 +4,7 @@ const { sequelizeConfig } = require('../database/sequelizeConfig');
 const EquipmentFeatures = sequelizeConfig.define(
     'EquipmentVariable',
     {
-        id_feature: {
+        id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true

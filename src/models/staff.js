@@ -1,10 +1,10 @@
 const { DataTypes } = require('sequelize');
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 
-const User = sequelizeConfig.define(
-    'User',
+const Staff = sequelizeConfig.define(
+    'Staff',
     {
-        userId: {
+        id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true,
@@ -37,9 +37,9 @@ const User = sequelizeConfig.define(
         }
     },
     {
-        tableName: 'users',
+        tableName: 'staff',
         timestamps: true,
     }
 );
 
-module.exports = User;
+module.exports = Staff;
