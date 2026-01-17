@@ -1,6 +1,7 @@
 const Staff = require('../models/staff');
 const { decodeToken } = require('../utils/jwt');
 const { handleError } = require('../utils/error');
+
 const auth = async (req, res, next) => {
         try {
         const authHeader = req.headers.authorization;

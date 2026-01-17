@@ -1,4 +1,4 @@
-const Staff = require('../models/staff');
+const { Staff } = require('../models');
 const { handleError } = require('../utils/error');
 const { createToken } = require('../utils/jwt');
 const { comparePasswords } = require('../utils/password');

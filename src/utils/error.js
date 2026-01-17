@@ -1,6 +1,6 @@
 const errorCodes = {
     //mysql errors
-    ER_DUP_ENTRY:{code:"ER_DUP_ENTRY", status:409, message:'Email duplicado'},
+    ER_DUP_ENTRY:{code:"ER_DUP_ENTRY", status:409},
 
     //server errors
     VALIDATION_ERR: {code:"VALIDATION_ERROR", status:400},

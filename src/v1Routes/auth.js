@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/auth');
-const { checkField } = require('../middlewares/checkField');
+const { validateField } = require('../middlewares/validateField');
 
-router.get('/', 
-    checkField('email'),
-    checkField('password'),
+router.post('/', 
+    validateField('email'),
+    validateField('password'),
     authController.login
 );
 
