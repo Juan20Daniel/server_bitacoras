@@ -3,8 +3,10 @@ const regexr = require('../utils/regexr');
 
 const searchField = (req, key) => {
     if(req.hasOwnProperty('query') && req.query.hasOwnProperty(key)) return req.query[key];
-    const body = req.body[key]??false;
-    if(body) return req.body[key];
+    if(req.body) {
+        const body = req.body[key]??false;
+        if(body) return req.body[key];
+    }
     if(req.params[key]) return req.params[key];
     return null;
 }

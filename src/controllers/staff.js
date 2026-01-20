@@ -2,11 +2,22 @@ const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { Staff, Department } = require('../models');
 const { encryptPassword } = require('../utils/password');
 
-const get = async (req, res, next) => {
+const getByIdCamp = async (req, res, next) => {
   try {
+    const {idCamp} = req.params;
     const staff = await Staff.findAll({
       attributes:['id', 'firstname', 'lastname'],
-      where: { active:true }
+      include: [
+        {
+          model:Department,
+          as: 'department',
+          where: {id_camps:idCamp},
+          attributes:[]
+        }
+      ],
+      where: { 
+        active:true
+      }
     });
     res.status(200).json({message:'Lista de personal', data:staff});
   } catch (error) {
@@ -17,8 +28,7 @@ const get = async (req, res, next) => {
 const post = async (req, res, next) => {
   try {
     const {
-      city,
-      schoolType,
+      idCamp,
       deparment:deparmentName,
       firstname,
       lastname,
@@ -30,8 +40,7 @@ const post = async (req, res, next) => {
       let department = null;
       department = await Department.findOne({
         where: {
-          city:city,
-          school_type:schoolType,
+          id_camps:idCamp,
           name:deparmentName
         }
       });
@@ -39,8 +48,7 @@ const post = async (req, res, next) => {
       if(!department) {
         department = await Department.create(
           {
-            city:city,
-            school_type: schoolType,
+            id_camps:idCamp,
             name: deparmentName
           },
           {transaction}
@@ -69,7 +77,7 @@ const patch = (req, res) => {
 }
 
 module.exports = {
-  get,
+  getByIdCamp,
   post,
   patch
 };

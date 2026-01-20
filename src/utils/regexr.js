@@ -15,7 +15,8 @@ const regexr = {
     gasTank: /^[A-Za-z0-9 íÍ/]{3,10}$/,
     reason: /^[A-Za-z0-9áÁéÉíÍóÓúÚñÑ\s. ]{5,50}$/,
     vehicleName: /^[A-Za-z0-9áÁéÉíÍóÓúÚñÑ ]{3,40}$/,
-    initMileage:/^[0-9]{5,6}$/
+    initMileage:/^[0-9]{5,6}$/,
+    idCamp: /^[0-9]{1,}$/
 }
 
 module.exports = regexr;

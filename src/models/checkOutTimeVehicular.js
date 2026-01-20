@@ -18,11 +18,11 @@ const CheckOutTimeVehicular = sequelizeConfig.define(
             allowNull: true
         },
         output_gasoline: {
-            type: DataTypes.INTEGER(10),
+            type: DataTypes.STRING(10),
             allowNull: false
         },
         arrival_gasoline: {
-            type: DataTypes.INTEGER(6),
+            type: DataTypes.STRING(10),
             allowNull: true
         },
         destination: {

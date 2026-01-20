@@ -7,7 +7,6 @@ const { authorize } = require('../middlewares/authorize');
 
 router.post('/staff',
     validateField('reason'),
-    validateField('checkOutType'),
     validateField('status'),
     validateField('idStaff'),
     auth,
@@ -17,7 +16,6 @@ router.post('/staff',
 
 router.post('/vehicular',
     validateField('reason'),
-    validateField('checkOutType'),
     validateField('status'),
     validateField('idStaff'),
     validateField('idVehicle'),

@@ -25,7 +25,8 @@ const login = async (req, res, next) => {
             staffId: staff.id,
             firstname:staff.firstname,
             lastname:staff.lastname,
-            email:email
+            email:email,
+            role: staff.role
         }
         const token = createToken(tokenData)
         res.status(200).json({

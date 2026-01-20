@@ -8,10 +8,15 @@ const EquipmentStatic = require('./equipmentStatic');
 const EquipmentVariable = require('./equipmentVariable');
 const EquipmentFeatures = require('./equipmentFeatures');
 const EquipmentHistory = require('./equipmentHistory');
+const Camp = require('./camps');
+
+//Relation between Camp and Department
+Camp.hasMany(Department, {foreignKey:'id_camps'});
+Department.belongsTo(Camp, {foreignKey:'id_camps'});
 
 //Relation between Department and User
-Department.hasOne(Staff, {foreignKey:'department_id'});
-Staff.belongsTo(Department, {foreignKey:'department_id'});
+Department.hasMany(Staff, {foreignKey:'department_id', as: 'staff'});
+Staff.belongsTo(Department, {foreignKey:'department_id', as:'department' });
 
 //Relation between User and CheckOutTime
 Staff.hasMany(CheckOutTime, {foreignKey: 'id_staff'});
@@ -55,6 +60,7 @@ Department.hasMany(EquipmentHistory, {foreignKey: 'id_department'});
 EquipmentHistory.belongsTo(Department, {foreignKey: 'id_department'});
 
 module.exports = {
+    Camp,
     Staff,
     Department,
     Vehicle,

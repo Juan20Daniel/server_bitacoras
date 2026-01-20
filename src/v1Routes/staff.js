@@ -5,10 +5,17 @@ const { validateField } = require('../middlewares/validateField');
 const { auth } = require('../middlewares/auth');
 const { authorize } = require('../middlewares/authorize');
 
-router.get('/', auth, authorize(['basic','rrhh','operator','admin']), staffController.get);
-router.post('/', 
-    validateField('city'),
-    validateField('schoolType'),
+router.get('/:idCamp', 
+    validateField('idCamp'),
+    auth,
+    authorize(['basic','rrhh','operator','admin']), 
+    staffController.getByIdCamp
+);
+
+router.post('/',
+    auth, 
+    authorize(['admin']),
+    validateField('idCamp'),
     validateField('deparment'),
     validateField('firstname'),
     validateField('lastname'),

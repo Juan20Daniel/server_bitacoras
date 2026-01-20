@@ -1,13 +1,13 @@
-const { CheckOutTime } = require('../models');
+const { CheckOutTime, CheckOutTimeVehicular, Vehicle } = require('../models');
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { getExpirationTime } = require('../utils/time');
 
 const createStaffCheckOutTime = async (req, res, next) => {
     try {
-        const { reason, checkOutType, status, idStaff } = req.body; 
+        const { reason, status, idStaff } = req.body; 
         await CheckOutTime.create({
             reason:reason,
-            check_Out_type:checkOutType,
+            check_Out_type:'staff',
             expiration_time:getExpirationTime(),
             status:status,
             id_staff:idStaff
@@ -21,28 +21,44 @@ const createStaffCheckOutTime = async (req, res, next) => {
 const createVehicularCheckOutTime = async (req, res, next) => {
     try {
         const { 
-            reason, 
-            checkOutType, 
-            status, 
-            idStaff, 
-            idVehicle, 
+            reason,
+            status,
+            idStaff,
+            idVehicle,
             gasTank, 
             destination 
-        } = req.body; 
-        console.log(req.body)
-        // await sequelizeConfig.transaction( async (transaction) => {
-        //     const checkOutTime = await CheckOutTime.create(
-        //         {
-        //             reason:reason,
-        //             check_Out_type:checkOutType,
-        //             expiration_time:getExpirationTime(),
-        //             status:status,
-        //             id_staff:idStaff
-        //         },
-        //         {transaction}
-        //     );
+        } = req.body;
+        
+        await sequelizeConfig.transaction( async (transaction) => {
+            const vehicle = await Vehicle.findOne({
+                attributes:['id', 'init_mileage'],
+                where: {
+                    id:idVehicle
+                }
+            });
+
+            const checkOutTime = await CheckOutTime.create(
+                {
+                    reason:reason,
+                    check_Out_type:'vehicular',
+                    expiration_time:getExpirationTime(),
+                    status:status,
+                    id_staff:idStaff
+                },
+                {transaction}
+            );
             
-        // });
+            await CheckOutTimeVehicular.create(
+                {
+                    departure_mileage: vehicle.init_mileage,
+                    output_gasoline: gasTank,
+                    destination: destination,
+                    id_check_out: checkOutTime.id,
+                    id_vehicle: idVehicle
+                },
+                {transaction}
+            );
+        });
 
         res.status(201).json({message:"Registro creado."});
     } catch (error) {
