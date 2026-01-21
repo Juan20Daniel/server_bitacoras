@@ -1,7 +1,20 @@
 const express = require('express');
 const router = express.Router();
 const vehicleController = require('../controllers/vehicle');
-const {setUploadFolder, upload, validateField, validateImage, auth, authorize } = require('../middlewares');
+const {
+    upload, 
+    setUploadFolder, 
+    validateField, 
+    validateImage, 
+    auth, 
+    authorize,
+} = require('../middlewares');
+
+router.get('/', 
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    vehicleController.get
+)
 
 router.post('/',
     auth,

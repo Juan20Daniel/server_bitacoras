@@ -15,7 +15,7 @@ const validateField = (field, required=true) => {
     return (req, res, next) => {
         const searchResult = searchField(req, field);
         if(!required && !searchResult) return next();
-        if(!searchResult) return next(new handleError('Error de validación', 'VALIDATION_ERR'));
+        if(!searchResult) return next(new handleError('Error de validación '+field, 'VALIDATION_ERR'));
         if(!regexr[field].test(searchResult)) return next(new handleError('Error de validación ', 'VALIDATION_ERR',));
         next();
     }

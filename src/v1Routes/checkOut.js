@@ -5,6 +5,13 @@ const { validateField } = require('../middlewares/validateField');
 const { auth } = require('../middlewares/auth');
 const { authorize } = require('../middlewares/authorize');
 
+router.get('/:idStaff',
+    validateField('idStaff'),
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    usersController.getByIdStaff
+)
+
 router.post('/staff',
     validateField('reason'),
     validateField('status'),

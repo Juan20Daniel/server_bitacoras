@@ -19,12 +19,12 @@ Department.hasMany(Staff, {foreignKey:'department_id', as: 'staff'});
 Staff.belongsTo(Department, {foreignKey:'department_id', as:'department' });
 
 //Relation between User and CheckOutTime
-Staff.hasMany(CheckOutTime, {foreignKey: 'id_staff'});
-CheckOutTime.belongsTo(Staff, {foreignKey:'id_staff'});
+Staff.hasMany(CheckOutTime, {foreignKey: 'id_staff', as:'checkOutTime'});
+CheckOutTime.belongsTo(Staff, {foreignKey:'id_staff', as:'staff'});
 
 //Relation between CheckOutTime and CheckOutTimeVehicular
-CheckOutTime.hasOne(CheckOutTimeVehicular, {foreignKey: 'id_check_out'});
-CheckOutTimeVehicular.belongsTo(CheckOutTime, {foreignKey: 'id_check_out'});
+CheckOutTime.hasOne(CheckOutTimeVehicular, {foreignKey: 'id_check_out', as:'checkOutTimeVehicular'});
+CheckOutTimeVehicular.belongsTo(CheckOutTime, {foreignKey: 'id_check_out', as:'checkOutTime'});
 
 //Relation between Vehicle and CheckOutTimeVehicular
 Vehicle.hasMany(CheckOutTimeVehicular, {foreignKey: 'id_vehicle'});
