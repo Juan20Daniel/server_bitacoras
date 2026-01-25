@@ -1,17 +1,18 @@
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { Staff, Department } = require('../models');
 const { encryptPassword } = require('../utils/password');
+const {handleError} = require('../utils/error');
 
-const getByIdCamp = async (req, res, next) => {
+const getByCampId = async (req, res, next) => {
   try {
-    const {idCamp} = req.params;
+    const {campId} = req.params;
     const staff = await Staff.findAll({
       attributes:['id', 'firstname', 'lastname'],
       include: [
         {
           model:Department,
           as: 'department',
-          where: {id_camps:idCamp},
+          where: {camps_id:campId},
           attributes:[]
         }
       ],
@@ -19,16 +20,19 @@ const getByIdCamp = async (req, res, next) => {
         active:true
       }
     });
-    res.status(200).json({message:'Lista de personal', data:staff});
+    res.status(200).json({
+      message:'Lista de personal', 
+      staffList:staff
+    });
   } catch (error) {
-    next(error);
+    next(new handleError('Error al crear al obtener la lista del personal', error));
   }
 };
 
 const post = async (req, res, next) => {
   try {
     const {
-      idCamp,
+      campId,
       deparment:deparmentName,
       firstname,
       lastname,
@@ -40,7 +44,7 @@ const post = async (req, res, next) => {
       let department = null;
       department = await Department.findOne({
         where: {
-          id_camps:idCamp,
+          camps_id:campId,
           name:deparmentName
         }
       });
@@ -48,7 +52,7 @@ const post = async (req, res, next) => {
       if(!department) {
         department = await Department.create(
           {
-            id_camps:idCamp,
+            camps_id:campId,
             name: deparmentName
           },
           {transaction}
@@ -68,7 +72,7 @@ const post = async (req, res, next) => {
     });
     res.status(201).json({message:'Usuario creado'});
   } catch (error) {
-    next(error);
+    next(new handleError('Error al crear el usuario', error));
   }
 };
 
@@ -77,7 +81,7 @@ const patch = (req, res) => {
 }
 
 module.exports = {
-  getByIdCamp,
+  getByCampId,
   post,
   patch
 };

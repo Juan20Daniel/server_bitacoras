@@ -4,6 +4,10 @@ const campsController = require('../controllers/camps');
 const { auth } = require('../middlewares/auth');
 const { authorize } = require('../middlewares/authorize');
 
-router.get('/', auth, authorize(['basic','rrhh','operator','admin']), campsController.get);
+router.get('/', 
+    auth, 
+    authorize(['basic','rrhh','operator','admin']), 
+    campsController.get
+);
 
 module.exports = router;

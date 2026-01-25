@@ -1,3 +1,4 @@
+const {handleError} = require('../utils/error');
 const path = require('path');
 
 const get = (req, res, next) => {
@@ -7,7 +8,7 @@ const get = (req, res, next) => {
 
     res.sendFile(imagePath, err => {
         if(err) {
-            next(err);
+            next(new handleError('Error al crear el usuario', error));
         }
     });
 }

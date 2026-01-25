@@ -1,27 +1,27 @@
 const { DataTypes } = require('sequelize');
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 
-const CheckOutTimeVehicular = sequelizeConfig.define(
-    'CheckOutTimeVehicular',
+const CheckOutVehicular = sequelizeConfig.define(
+    'CheckOutVehicular',
     {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
             autoIncrement: true
         },
-        departure_mileage: {
+        departure_km: {
             type: DataTypes.INTEGER(6),
             allowNull: false
         },
-        arrival_mileage: {
+        arrival_km: {
             type: DataTypes.INTEGER(6),
             allowNull: true
         },
-        output_gasoline: {
+        outlet_tank_lavel: {
             type: DataTypes.STRING(10),
             allowNull: false
         },
-        arrival_gasoline: {
+        input_tank_lavel: {
             type: DataTypes.STRING(10),
             allowNull: true
         },
@@ -31,9 +31,9 @@ const CheckOutTimeVehicular = sequelizeConfig.define(
         }
     },
     {
-        tableName:'check_out_time_vehicular',
+        tableName:'check_out_vehicular',
         timestamps: false
     }
 );
 
-module.exports = CheckOutTimeVehicular;
+module.exports = CheckOutVehicular;

@@ -19,12 +19,12 @@ const Staff = sequelizeConfig.define(
         },
         email: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true,
             unique: true,
         },
         password: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true,
         },
         active: {
             type: DataTypes.BOOLEAN,

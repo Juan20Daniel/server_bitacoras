@@ -1,13 +1,14 @@
 const { Vehicle } = require('../models');
+const {handleError} = require('../utils/error');
 
 const get = async (req, res, next) => {
     try {
         const vehices = await Vehicle.findAll({
             attributes:['id', 'name', 'image']
         });
-        res.status(200).json({message:'Vehiculos', data:vehices});
+        res.status(200).json({message:'Vehiculos', vehiclesList:vehices});
     } catch (error) {
-        next(error);
+        next(new handleError('Error al crear el usuario', error));
     }
 }
 
@@ -22,7 +23,7 @@ const post = async (req, res, next) => {
         });
         res.status(201).json({message:'Vehiculo agregado'})
     } catch (error) {
-        next(error);
+        next(new handleError('Error al agregar el vehiculo.', error));
     }
 }
 

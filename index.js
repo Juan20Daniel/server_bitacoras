@@ -29,7 +29,7 @@ const server = async () => {
           message: err.message
         });
       }
-      console.log(err);
+      
       res.status(500).json({
           errorCode: 'UNKNOWN_ER',
           message: 'Error desconocido'

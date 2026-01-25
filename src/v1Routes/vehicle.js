@@ -6,7 +6,7 @@ const {
     setUploadFolder, 
     validateField, 
     validateImage, 
-    auth, 
+    auth,
     authorize,
 } = require('../middlewares');
 

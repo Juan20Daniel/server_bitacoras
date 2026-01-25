@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 
-const CheckOutTime = sequelizeConfig.define(
-    'checkOutTime',
+const CheckOut = sequelizeConfig.define(
+    'checkOut',
     {
         id: {
             type: DataTypes.INTEGER,
@@ -16,6 +16,10 @@ const CheckOutTime = sequelizeConfig.define(
         check_Out_type: {
             type: DataTypes.ENUM('staff', 'vehicular'),
             defaultValue: 'staff',
+        },
+        start_date: {
+            type: DataTypes.DATEONLY,
+            allowNull: true
         },
         departure_time: {
             type: DataTypes.STRING(40),
@@ -39,9 +43,9 @@ const CheckOutTime = sequelizeConfig.define(
         }
     },
     {
-        tableName: 'check_out_time',
+        tableName: 'check_out',
         timestamps: true
     }
 );
 
-module.exports = CheckOutTime
+module.exports = CheckOut

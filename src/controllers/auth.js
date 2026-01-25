@@ -32,7 +32,7 @@ const login = async (req, res, next) => {
         res.status(200).json({
             message:'Sesión iniciada',
             token:`Bearer ${token}`,
-            data:staffData
+            user:staffData
         });
     } catch (error) {
         next(error);

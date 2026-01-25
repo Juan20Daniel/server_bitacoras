@@ -1,13 +1,13 @@
 const Camp = require('../models/camps');
+const {handleError} = require('../utils/error');
 
 const get = async (req, res, next) => {
     try {
-        const { idCamp } = req.params;
         const camps = await Camp.findAll();
         
-        res.status(200).json({message:"Campus registrados", data:camps})
+        res.status(200).json({message:"Campus registrados", campsList:camps})
     } catch (error) {
-        next(error);
+        next(new handleError('Error al obtener los campus', error));
     }
 }
 

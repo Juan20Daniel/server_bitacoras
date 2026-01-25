@@ -1,8 +1,8 @@
 const Staff = require('./staff');
 const Department = require('./department');
 const Vehicle = require('./vehicle');
-const CheckOutTime = require('./checkOutTime');
-const CheckOutTimeVehicular = require('./checkOutTimeVehicular');
+const CheckOut = require('./checkOut');
+const CheckOutVehicular = require('./checkOutVehicular');
 const Equipment = require('./equipment');
 const EquipmentStatic = require('./equipmentStatic');
 const EquipmentVariable = require('./equipmentVariable');
@@ -11,61 +11,61 @@ const EquipmentHistory = require('./equipmentHistory');
 const Camp = require('./camps');
 
 //Relation between Camp and Department
-Camp.hasMany(Department, {foreignKey:'id_camps'});
-Department.belongsTo(Camp, {foreignKey:'id_camps'});
+Camp.hasMany(Department, {foreignKey:'camps_id'});
+Department.belongsTo(Camp, {foreignKey:'camps_id'});
 
 //Relation between Department and User
 Department.hasMany(Staff, {foreignKey:'department_id', as: 'staff'});
 Staff.belongsTo(Department, {foreignKey:'department_id', as:'department' });
 
-//Relation between User and CheckOutTime
-Staff.hasMany(CheckOutTime, {foreignKey: 'id_staff', as:'checkOutTime'});
-CheckOutTime.belongsTo(Staff, {foreignKey:'id_staff', as:'staff'});
+//Relation between User and CheckOut
+Staff.hasMany(CheckOut, {foreignKey: 'staff_id', as:'checkOut'});
+CheckOut.belongsTo(Staff, {foreignKey:'staff_id', as:'staff'});
 
-//Relation between CheckOutTime and CheckOutTimeVehicular
-CheckOutTime.hasOne(CheckOutTimeVehicular, {foreignKey: 'id_check_out', as:'checkOutTimeVehicular'});
-CheckOutTimeVehicular.belongsTo(CheckOutTime, {foreignKey: 'id_check_out', as:'checkOutTime'});
+//Relation between CheckOut and CheckOutVehicular
+CheckOut.hasOne(CheckOutVehicular, {foreignKey: 'check_out_id', as:'checkOutVehicular'});
+CheckOutVehicular.belongsTo(CheckOut, {foreignKey: 'check_out_id', as:'checkOut'});
 
-//Relation between Vehicle and CheckOutTimeVehicular
-Vehicle.hasMany(CheckOutTimeVehicular, {foreignKey: 'id_vehicle'});
-CheckOutTimeVehicular.belongsTo(Vehicle, {foreignKey: 'id_vehicle'});
+//Relation between Vehicle and CheckOutVehicular
+Vehicle.hasMany(CheckOutVehicular, {foreignKey: 'vehicle_id', as:'checkOutVehicular'});
+CheckOutVehicular.belongsTo(Vehicle, {foreignKey: 'vehicle_id', as:'vehicle'});
 
 //Relation between Equipment and EquipmentStatic
-Equipment.hasOne(EquipmentStatic, {foreignKey: 'id_equipment'});
-EquipmentStatic.belongsTo(Equipment, {foreignKey: 'id_equipment'});
+Equipment.hasOne(EquipmentStatic, {foreignKey: 'equipment_id'});
+EquipmentStatic.belongsTo(Equipment, {foreignKey: 'equipment_id'});
 
 //Relation between Equipment and EquipmentVariable
-Equipment.hasOne(EquipmentVariable, {foreignKey: 'id_equipment'});
-EquipmentVariable.belongsTo(Equipment, {foreignKey: 'id_equipment'});
+Equipment.hasOne(EquipmentVariable, {foreignKey: 'equipment_id'});
+EquipmentVariable.belongsTo(Equipment, {foreignKey: 'equipment_id'});
 
 //Relation between Equipment and EquipmentFeatures
-Equipment.hasMany(EquipmentFeatures, {foreignKey: 'id_equipment'});
-EquipmentFeatures.belongsTo(Equipment, {foreignKey: 'id_equipment'});
+Equipment.hasMany(EquipmentFeatures, {foreignKey: 'equipment_id'});
+EquipmentFeatures.belongsTo(Equipment, {foreignKey: 'equipment_id'});
 
 //Relation between Equipment and User
 Equipment.belongsToMany(Staff, {
     through:'staff_equipment',
-    foreignKey:'id_equipment',
-    otherKey: 'id_staff'
+    foreignKey:'equipment_id',
+    otherKey: 'staff_id'
 });
 
 Staff.belongsToMany(Equipment, {
     through:'staff_equipment',
-    foreignKey:'id_staff',
-    otherKey: 'id_equipment'
+    foreignKey:'staff_id',
+    otherKey: 'equipment_id'
 });
 
 //Relation between Department and EquipmentHistory
-Department.hasMany(EquipmentHistory, {foreignKey: 'id_department'});
-EquipmentHistory.belongsTo(Department, {foreignKey: 'id_department'});
+Department.hasMany(EquipmentHistory, {foreignKey: 'department_id'});
+EquipmentHistory.belongsTo(Department, {foreignKey: 'department_id'});
 
 module.exports = {
     Camp,
     Staff,
     Department,
     Vehicle,
-    CheckOutTime,
-    CheckOutTimeVehicular,
+    CheckOut,
+    CheckOutVehicular,
     Equipment,
     EquipmentStatic,
     EquipmentVariable,

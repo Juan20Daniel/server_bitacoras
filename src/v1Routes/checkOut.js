@@ -5,32 +5,39 @@ const { validateField } = require('../middlewares/validateField');
 const { auth } = require('../middlewares/auth');
 const { authorize } = require('../middlewares/authorize');
 
-router.get('/:idStaff',
-    validateField('idStaff'),
+router.get('/:staffId',
+    validateField('staffId'),
     auth,
     authorize(['basic','rrhh','operator','admin']),
-    usersController.getByIdStaff
+    usersController.getByStaffId
 )
 
 router.post('/staff',
-    validateField('reason'),
-    validateField('status'),
-    validateField('idStaff'),
     auth,
     authorize(['basic','rrhh','operator','admin']),
-    usersController.createStaffCheckOutTime
+    validateField('reason'),
+    validateField('status'),
+    validateField('staffId'),
+    usersController.createStaffCheckOut
 );
 
 router.post('/vehicular',
-    validateField('reason'),
-    validateField('status'),
-    validateField('idStaff'),
-    validateField('idVehicle'),
-    validateField('gasTank'),
-    validateField('destination'),
     auth,
     authorize(['basic','rrhh','operator','admin']),
-    usersController.createVehicularCheckOutTime
+    validateField('reason'),
+    validateField('status'),
+    validateField('staffId'),
+    validateField('vehicleId'),
+    validateField('outletTankLavel'),
+    validateField('destination'),
+    usersController.createVehicularCheckOut
+)
+
+router.patch('/registerExitHour/:checkOutId',
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    usersController.registerExitHour
 );
+
 
 module.exports = router;
