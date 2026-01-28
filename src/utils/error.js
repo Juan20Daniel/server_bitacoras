@@ -11,9 +11,12 @@ const errorCodes = {
     SERVER_ERR: {code:"SERVER_ERROR", status:500},
     UNKNOWN_ER: {code:"UNKNOWN", status:500},
     TIMEOUT_ERR: {code:"TIMEOUT_ERROR", status:504},
+
+    TIMEOUT_ERR: {code:"EXPIRATION_ERROR", status:504},
 }
 
 const errorCode = (error) => {
+  console.log(error);
   if (error.original?.code?.startsWith('ER_')) {
     return errorCodes[error.original?.code];
   }

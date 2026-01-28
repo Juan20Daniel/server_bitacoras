@@ -1,16 +1,27 @@
 const express = require('express');
 const router = express.Router();
 const usersController = require('../controllers/checkOut');
-const { validateField } = require('../middlewares/validateField');
-const { auth } = require('../middlewares/auth');
-const { authorize } = require('../middlewares/authorize');
+const { 
+    validateField, 
+    setUploadFolder,
+    authorize, 
+    auth,
+    upload,
+    validateImage
+} = require('../middlewares');
+
+router.get('/',
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    usersController.getAll
+);
 
 router.get('/:staffId',
     validateField('staffId'),
     auth,
     authorize(['basic','rrhh','operator','admin']),
     usersController.getByStaffId
-)
+);
 
 router.post('/staff',
     auth,
@@ -31,7 +42,24 @@ router.post('/vehicular',
     validateField('outletTankLavel'),
     validateField('destination'),
     usersController.createVehicularCheckOut
-)
+);
+
+router.patch('/staff/:checkOutId',
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    validateField('reason'),
+    usersController.updateCheckOutStaff
+);
+
+router.patch('/vehicular/:checkOutId',
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    validateField('reason'),
+    validateField('vehicleId'),
+    validateField('outletTankLavel'),
+    validateField('destination'),
+    usersController.updateCheckOutVehicular
+);
 
 router.patch('/registerExitHour/:checkOutId',
     auth,
@@ -39,5 +67,25 @@ router.patch('/registerExitHour/:checkOutId',
     usersController.registerExitHour
 );
 
+router.patch('/registerInputHourStaff/:checkOutId',
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    setUploadFolder('selfies'),
+    upload.single('selfie'),
+    validateImage(),
+    usersController.registerInputHourStaff
+);
+
+router.patch('/cancel/:checkOutId',
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    usersController.cancelCheckOut
+);
+
+router.delete('/:checkOutId',
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    usersController.removeCheckOut
+);
 
 module.exports = router;

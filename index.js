@@ -29,7 +29,6 @@ const server = async () => {
           message: err.message
         });
       }
-      
       res.status(500).json({
           errorCode: 'UNKNOWN_ER',
           message: 'Error desconocido'

@@ -34,12 +34,12 @@ const CheckOut = sequelizeConfig.define(
             allowNull: true
         },
         status: {
-            type: DataTypes.ENUM('programmed','initiated','finalized','canceled','incomplete'),
+            type: DataTypes.ENUM('programmed','initiated','finalized','canceled','incomplete','removed'),
             defaultValue: 'programmed'
         },
         expiration_time: {
             type: DataTypes.BIGINT,
-            allowNull: false,
+            allowNull: true,
         }
     },
     {
