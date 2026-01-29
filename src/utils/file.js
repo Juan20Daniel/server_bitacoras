@@ -1,0 +1,25 @@
+const fs = require('fs/promises');
+const path = require('path');
+
+const removeImg = async (imageName) => {
+    try {
+        const imagePath = path.join(process.cwd(), `public/temp`, imageName);
+
+        await fs.unlink(imagePath);
+        
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+
+const moveImg = async (file, fileName) => {
+    const imagePath = path.join(process.cwd(), `public/images/${fileName}`, file.filename);
+    
+    await fs.rename(file.path, imagePath);
+}
+
+module.exports = {
+    removeImg,
+    moveImg
+}

@@ -1,5 +1,6 @@
 const { handleError } = require('../utils/error');
 const regexr = require('../utils/regexr');
+const { removeImg } = require('../utils/file');
 
 const searchField = (req, key) => {
     if(req.hasOwnProperty('query') && req.query.hasOwnProperty(key)) return req.query[key];
@@ -15,8 +16,14 @@ const validateField = (field, required=true) => {
     return (req, res, next) => {
         const searchResult = searchField(req, field);
         if(!required && !searchResult) return next();
-        if(!searchResult) return next(new handleError('Error de validación '+field, 'VALIDATION_ERR'));
-        if(!regexr[field].test(searchResult)) return next(new handleError('Error de validación '+field, 'VALIDATION_ERR',));
+        if(!searchResult) {
+            if(req.file) removeImg(req.file.filename);
+            return next(new handleError('Error de validación '+field, 'VALIDATION_ERR'));
+        }
+        if(!regexr[field].test(searchResult)) {
+            if(req.file) removeImg(req.file.filename);
+            return next(new handleError('Error de validación '+field, 'VALIDATION_ERR',));
+        }
         next();
     }
 }

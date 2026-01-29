@@ -6,7 +6,7 @@ const { randomNum } = require('../utils/randomNum');
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, `public/images/${req.uploadFolder}`);
+        cb(null, `public/temp`);
     },
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname);

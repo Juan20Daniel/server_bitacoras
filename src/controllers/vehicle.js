@@ -1,5 +1,6 @@
 const { Vehicle } = require('../models');
-const {handleError} = require('../utils/error');
+const { handleError } = require('../utils/error');
+const { moveImg, removeImg } = require('../utils/file');
 
 const get = async (req, res, next) => {
     try {
@@ -21,8 +22,10 @@ const post = async (req, res, next) => {
             image:filename,
             init_mileage:initMileage
         });
+        await moveImg(req.file, req.uploadFolder);
         res.status(201).json({message:'Vehiculo agregado'})
     } catch (error) {
+        removeImg(req.file.filename);
         next(new handleError('Error al agregar el vehiculo.', error));
     }
 }

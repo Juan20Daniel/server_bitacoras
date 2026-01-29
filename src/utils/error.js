@@ -10,13 +10,12 @@ const errorCodes = {
     NOT_FOUND_ERR: {code:"NOT_FOUND_ERROR", status:404},
     SERVER_ERR: {code:"SERVER_ERROR", status:500},
     UNKNOWN_ER: {code:"UNKNOWN", status:500},
+    EXPIRATION_ERROR: {code:"EXPIRATION_ERROR", status:504},
     TIMEOUT_ERR: {code:"TIMEOUT_ERROR", status:504},
 
-    TIMEOUT_ERR: {code:"EXPIRATION_ERROR", status:504},
 }
 
 const errorCode = (error) => {
-  console.log(error);
   if (error.original?.code?.startsWith('ER_')) {
     return errorCodes[error.original?.code];
   }
@@ -35,7 +34,7 @@ const errorCode = (error) => {
 class handleError extends Error {
   constructor(message, error) {
     super(message);
-    this.errorCode = errorCode(error).code;
+    this.errorCode = errorCode(error).code??'UNKNOWN_ER';
     this.status = errorCode(error).status;
     this.isOperational = true;
   }

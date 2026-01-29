@@ -6,8 +6,8 @@ const { handleError } = require('../utils/error');
 const { getDayAndHour } = require('../utils/time');
 
 const getCheckOutById = async (id) => {
-    const result = await CheckOut.findOne({
-        attributes:['id','reason','check_Out_type','departure_time','arrival_time','status','expiration_time'],
+    const checkOuts = await CheckOut.findOne({
+        attributes: ['id','reason','check_Out_type','departure_time','arrival_time','status','expiration_time'],
         include: [
             {
                 model:CheckOutVehicular,
@@ -32,12 +32,38 @@ const getCheckOutById = async (id) => {
             id:id,
         },
     });
-    return result;
+   
+    return checkOuts;
+}
+
+const getVelidCheckOuts = async (checkOuts) => {
+    const now = timeUnix();
+    const expireCheckOuts = [];
+    const validCheckOuts = [];
+    checkOuts.forEach(checkOut => {
+        (checkOut.status === 'initiated' && now > checkOut.expiration_time)
+            ?   expireCheckOuts.push(checkOut)
+            :   validCheckOuts.push(checkOut)
+    });
+
+    if(!expireCheckOuts.length) return validCheckOuts;
+
+    const expireCheckOutIds = expireCheckOuts.map(checkOut => checkOut.id);
+    try {
+        await CheckOut.update(
+            {status:'incomplete'},
+            {where:{id:expireCheckOutIds}}
+        );
+
+        return validCheckOuts;
+    } catch (error) {
+        throw error;
+    }
 }
 
 const getAll = async (req, res, next) => {
     try {
-        const result = await CheckOut.findAll({
+        const checkOuts = await CheckOut.findAll({
             attributes:['id','reason','check_Out_type','departure_time','arrival_time','status','expiration_time'],
             include: [
                 {
@@ -61,19 +87,23 @@ const getAll = async (req, res, next) => {
             ],
             where: {status:['programmed', 'initiated']}
         });
+
+        const validCheckOuts = await getVelidCheckOuts(checkOuts);
+
         res.status(200).json({
             message:"Registros de salida.", 
-            checkOutList:result
+            checkOutList:validCheckOuts
         });
     } catch (error) {
         next(new handleError('Error al obtener todos los registros de salida.', error));
     }
 }
 
+
 const getByStaffId = async (req, res, next) => {
     try {
         const {staffId} = req.params;
-        const result = await CheckOut.findAll({
+        const checkOuts = await CheckOut.findAll({
             attributes:['id','reason','check_Out_type','departure_time','arrival_time','status','expiration_time'],
             include: [
                 {
@@ -101,9 +131,12 @@ const getByStaffId = async (req, res, next) => {
             },
             order: [['createdAt', 'DESC']]
         });
+
+        const validCheckOuts = await getVelidCheckOuts(checkOuts);
+        
         res.status(200).json({
             message:"Registros de salida.", 
-            checkOutList:result
+            checkOutList:validCheckOuts
         });
     } catch (error) {
         next(new handleError('Error al obtener los registros de salida', error));
@@ -112,7 +145,7 @@ const getByStaffId = async (req, res, next) => {
 
 const createStaffCheckOut = async (req, res, next) => {
     try {
-        const { reason, status, staffId } = req.body; 
+        const { reason, status, staffId } = req.body;
          const newCheckOut = await CheckOut.create({
             reason:reason,
             check_Out_type:'staff',
@@ -121,7 +154,7 @@ const createStaffCheckOut = async (req, res, next) => {
         });
         const checkOut = await getCheckOutById(newCheckOut.id);
         res.status(201).json({
-            message:"Registro creado.", 
+            message:"Registro creado.",
             newCheckOut: checkOut
         });
     } catch (error) {
@@ -173,7 +206,7 @@ const createVehicularCheckOut = async (req, res, next) => {
                 checkOutVehicular
             }
         });
-         const checkOut = await getCheckOutById(result.checkOut.id);
+        const checkOut = await getCheckOutById(result.checkOut.id);
         res.status(201).json({
             message:"Registro creado.", 
             newCheckOut: checkOut
@@ -250,10 +283,10 @@ const registerExitHour = async (req, res, next) => {
                 }
             }
         );
-        const checkOutUpdated = await getCheckOutById(checkOutId)
+        const checkOut = await getCheckOutById(checkOutId);
         res.status(201).json({
             message:"Hora de salida registrada",
-            checkOutUpdated
+            checkOut
         });
     } catch (error) {
         next(new handleError('Error al registrar la hora de salida', error));
@@ -265,15 +298,58 @@ const registerInputHourStaff = async (req, res, next) => {
         const { filename } = req.file;
         const { checkOutId } = req.params;
         const checkOut = await CheckOut.findOne({where:{id:checkOutId}});
-        const now = timeUnix()
+        const now = timeUnix();
         if(now > checkOut.expiration_time) {
-            throw new handleError('El tiempo de registrar la hora de regreso, expiró', 'EXPIRATION_ERROR');
+            await CheckOut.update(
+                {status:'incomplete'},
+                {where:{id:checkOutId}}
+            );
+            return next(new handleError('El tiempo de registrar la hora de regreso, expiró', 'EXPIRATION_ERROR'));
         }
-        console.log();
 
+        const result = await CheckOut.update(
+            {
+                status:'finalized',
+                arrival_time:getDayAndHour(),
+                selfie_img:filename
+            },
+            {where:{id:checkOutId}}
+        );
         res.status(201).json({
             message:"Hora de llegada registrada",
-            checkOut
+            checkOut:result
+        });
+    } catch (error) {
+        next(new handleError('Error al registrar la hora de llegada', error));
+    }
+}
+
+const registerInputHourVehicular = async (req, res, next) => {
+    try {
+        const { filename } = req.file;
+        const { checkOutId } = req.params;
+        const { arrivalKm, inputTankLavel } = req.body;
+        console.log({checkOutId, arrivalKm, inputTankLavel})
+        // const checkOut = await CheckOut.findOne({where:{id:checkOutId}});
+        // const now = timeUnix();
+        // if(now > checkOut.expiration_time) {
+        //     await CheckOut.update(
+        //         {status:'incomplete'},
+        //         {where:{id:checkOutId}}
+        //     );
+        //     return next(new handleError('El tiempo de registrar la hora de regreso, expiró', 'EXPIRATION_ERROR'));
+        // }
+
+        // const result = await CheckOut.update(
+        //     {
+        //         status:'finalized',
+        //         arrival_time:getDayAndHour(),
+        //         selfie_img:filename
+        //     },
+        //     {where:{id:checkOutId}}
+        // );
+        res.status(201).json({
+            message:"Hora de llegada registrada",
         });
     } catch (error) {
         next(new handleError('Error al registrar la hora de llegada', error));
@@ -317,6 +393,7 @@ module.exports = {
     createVehicularCheckOut,
     registerExitHour,
     registerInputHourStaff,
+    registerInputHourVehicular,
     updateCheckOutVehicular,
     updateCheckOutStaff,
     removeCheckOut,

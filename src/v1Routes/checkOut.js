@@ -76,6 +76,17 @@ router.patch('/registerInputHourStaff/:checkOutId',
     usersController.registerInputHourStaff
 );
 
+router.patch('/registerInputHourVehicular/:checkOutId',
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    setUploadFolder('selfies'),
+    upload.single('selfie'),
+    validateImage(),
+    validateField('arrivalKm'),
+    validateField('inputTankLavel'),
+    usersController.registerInputHourVehicular
+);
+
 router.patch('/cancel/:checkOutId',
     auth,
     authorize(['basic','rrhh','operator','admin']),
