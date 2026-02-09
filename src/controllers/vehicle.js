@@ -25,7 +25,7 @@ const post = async (req, res, next) => {
         await moveImg(req.file, req.uploadFolder);
         res.status(201).json({message:'Vehiculo agregado'})
     } catch (error) {
-        removeImg(req.file.filename);
+        await removeImg(req.file.filename);
         next(new handleError('Error al agregar el vehiculo.', error));
     }
 }

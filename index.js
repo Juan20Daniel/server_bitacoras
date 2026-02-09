@@ -23,13 +23,13 @@ const server = async () => {
     app.use('/api/v1', v1Routes);
 
     app.use((err, req, res, next) => {
+      console.log(err);
       if(err.isOperational) {
         return res.status(err.status).json({
           errorCode: err.errorCode,
           message: err.message
         });
       }
-      console.log(err);
       res.status(500).json({
           errorCode: 'UNKNOWN_ER',
           message: 'Error desconocido'

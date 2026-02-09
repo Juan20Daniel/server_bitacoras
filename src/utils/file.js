@@ -13,8 +13,8 @@ const removeImg = async (imageName) => {
     }
 }
 
-const moveImg = async (file, fileName) => {
-    const imagePath = path.join(process.cwd(), `public/images/${fileName}`, file.filename);
+const moveImg = async (file, folderName) => {
+    const imagePath = path.join(process.cwd(), `public/images/${folderName}`, file.filename);
     
     await fs.rename(file.path, imagePath);
 }

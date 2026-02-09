@@ -22,7 +22,7 @@ const validateField = (field, required=true) => {
         }
         if(!regexr[field].test(searchResult)) {
             if(req.file) removeImg(req.file.filename);
-            return next(new handleError('Error de validación '+field, 'VALIDATION_ERR',));
+            return next(new handleError('Error de validación '+field, 'VALIDATION_ERR'));
         }
         next();
     }

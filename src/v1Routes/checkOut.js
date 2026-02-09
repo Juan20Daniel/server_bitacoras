@@ -23,6 +23,13 @@ router.get('/:staffId',
     usersController.getByStaffId
 );
 
+router.get('/getCheckOutByCampId/:campId',
+    validateField('campId'),
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    usersController.getByCampId
+);
+
 router.post('/staff',
     auth,
     authorize(['basic','rrhh','operator','admin']),

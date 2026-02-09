@@ -1,9 +1,10 @@
-const { CheckOut, CheckOutVehicular, Vehicle, Staff } = require('../models');
+const { CheckOut, CheckOutVehicular, Vehicle, Staff, Department } = require('../models');
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { Sequelize } = require('sequelize');
 const { getExpirationTime, timeUnix } = require('../utils/time');
 const { handleError } = require('../utils/error');
 const { getDayAndHour } = require('../utils/time');
+const { moveImg, removeImg } = require('../utils/file')
 
 const getCheckOutById = async (id) => {
     const checkOuts = await CheckOut.findOne({
@@ -34,6 +35,54 @@ const getCheckOutById = async (id) => {
     });
    
     return checkOuts;
+}
+
+const getByCampId = async (req, res, next) => {
+     try {
+        const { campId } = req.params;
+        const checkOuts = await CheckOut.findAll({
+            attributes:['id','reason','check_Out_type','departure_time','arrival_time','status','expiration_time'],
+            include: [
+                {
+                    model:CheckOutVehicular,
+                    as:'checkOutVehicular',
+                    required:false,
+                    attributes:['departure_km', 'arrival_km','outlet_tank_lavel','input_tank_lavel','destination','vehicle_id'],
+                    include: [
+                        {
+                            model:Vehicle,
+                            as:'vehicle',
+                            attributes:['name', 'image']
+                        }
+                    ]
+                },
+                {
+                    model:Staff,
+                    as:'staff',
+                    attributes:['firstname', 'lastname'],
+                    required:true,
+                    include: [
+                        {
+                            model:Department,
+                            as:'department',
+                            attributes:[],
+                            where: {camps_id:campId}
+                        }
+                    ]
+                }
+            ],
+            where: {status:['programmed', 'initiated']}
+        });
+
+        const validCheckOuts = await getVelidCheckOuts(checkOuts);
+
+        res.status(200).json({
+            message:"Registros de salida.", 
+            checkOutList:validCheckOuts
+        });
+    } catch (error) {
+        next(new handleError('Error al obtener todos los registros de salida.', error));
+    }
 }
 
 const getVelidCheckOuts = async (checkOuts) => {
@@ -299,15 +348,17 @@ const registerInputHourStaff = async (req, res, next) => {
         const { checkOutId } = req.params;
         const checkOut = await CheckOut.findOne({where:{id:checkOutId}});
         const now = timeUnix();
+
         if(now > checkOut.expiration_time) {
             await CheckOut.update(
                 {status:'incomplete'},
                 {where:{id:checkOutId}}
             );
-            return next(new handleError('El tiempo de registrar la hora de regreso, expiró', 'EXPIRATION_ERROR'));
+            await removeImg(req.file.filename);
+            return next(new handleError('El tiempo para registrar la hora de regreso, expiró', 'EXPIRATION_ERROR'));
         }
 
-        const result = await CheckOut.update(
+        await CheckOut.update(
             {
                 status:'finalized',
                 arrival_time:getDayAndHour(),
@@ -315,11 +366,14 @@ const registerInputHourStaff = async (req, res, next) => {
             },
             {where:{id:checkOutId}}
         );
+        await moveImg(req.file, req.uploadFolder);
+        const checkOutUpdated = await getCheckOutById(checkOutId);
         res.status(201).json({
             message:"Hora de llegada registrada",
-            checkOut:result
+            checkOut:checkOutUpdated
         });
     } catch (error) {
+        await removeImg(req.file.filename);
         next(new handleError('Error al registrar la hora de llegada', error));
     }
 }
@@ -329,29 +383,65 @@ const registerInputHourVehicular = async (req, res, next) => {
         const { filename } = req.file;
         const { checkOutId } = req.params;
         const { arrivalKm, inputTankLavel } = req.body;
-        console.log({checkOutId, arrivalKm, inputTankLavel})
-        // const checkOut = await CheckOut.findOne({where:{id:checkOutId}});
-        // const now = timeUnix();
-        // if(now > checkOut.expiration_time) {
-        //     await CheckOut.update(
-        //         {status:'incomplete'},
-        //         {where:{id:checkOutId}}
-        //     );
-        //     return next(new handleError('El tiempo de registrar la hora de regreso, expiró', 'EXPIRATION_ERROR'));
-        // }
+        
+        const checkOut = await CheckOut.findOne({
+            include: {
+                model:CheckOutVehicular,
+                as:'checkOutVehicular',
+                attributes:['departure_km','vehicle_id']
+            },
+            where:{id:checkOutId}
+        });
+        const now = timeUnix();
 
-        // const result = await CheckOut.update(
-        //     {
-        //         status:'finalized',
-        //         arrival_time:getDayAndHour(),
-        //         selfie_img:filename
-        //     },
-        //     {where:{id:checkOutId}}
-        // );
+        if(now > checkOut.expiration_time) {
+            await CheckOut.update(
+                {status:'incomplete'},
+                {where:{id:checkOutId}}
+            );
+            await removeImg(req.file.filename);
+            return next(new handleError('El tiempo para registrar la hora de regreso, expiró', 'EXPIRATION_ERROR'));
+        }
+        const {departure_km, vehicle_id} = checkOut.checkOutVehicular;
+        if(arrivalKm <= departure_km) {
+            await removeImg(req.file.filename);
+            return next(new handleError('El kilometraje, no es válido', 'VALIDATION_ERR'));
+        }
+        await sequelizeConfig.transaction( async (transaction) => {
+            await CheckOut.update(
+                {
+                    status:'finalized',
+                    arrival_time:getDayAndHour(),
+                    selfie_img:filename
+                },
+                {where:{id:checkOutId}},
+                {transaction}
+            );
+            await CheckOutVehicular.update(
+                {
+                    arrival_km:arrivalKm,
+                    input_tank_lavel:inputTankLavel
+                },
+                {where:{check_out_id:checkOutId}},
+                {transaction}
+            );
+            await Vehicle.update(
+                {
+                    init_mileage:arrivalKm
+                },
+                {where:{id:vehicle_id}},
+                {transaction}
+            );
+        });
+
+        await moveImg(req.file, req.uploadFolder);
+        const checkOutUpdated = await getCheckOutById(checkOutId);
         res.status(201).json({
             message:"Hora de llegada registrada",
+            checkOut:checkOutUpdated
         });
     } catch (error) {
+        await removeImg(req.file.filename);
         next(new handleError('Error al registrar la hora de llegada', error));
     }
 }
@@ -391,6 +481,7 @@ module.exports = {
     getByStaffId,
     createStaffCheckOut,
     createVehicularCheckOut,
+    getByCampId,
     registerExitHour,
     registerInputHourStaff,
     registerInputHourVehicular,

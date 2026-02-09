@@ -28,17 +28,44 @@ const login = async (req, res, next) => {
             email:email,
             role: staff.role
         }
-        const token = createToken(tokenData)
+        const token = createToken(tokenData);
         res.status(200).json({
             message:'Sesión iniciada',
             token:`Bearer ${token}`,
             user:staffData
         });
     } catch (error) {
-        next(error);
+        next(new handleError('Error al iniciar sesión', error));
     }
 }
 
+const passwordVerification = async (req, res, next) => {
+    try {
+        const { password } = req.params;
+        const passwords = await Staff.findAll({
+            attributes:['password'],
+            where:{role:'admin'},
+            raw:true
+        });
+      
+        const isValidPassword = passwords.some(p => {
+            return comparePasswords(password, p.password);
+        });
+       
+        if(!isValidPassword) {
+            return next(new handleError('Contraseña incorrecta o la cuenta no existe', 'AUTH_ERR'));
+        }
+
+        res.status(200).json({
+            message:'Verificación de contraseña',
+            isValidPassword
+        });
+    } catch (error) {
+        next(new handleError('Error al verificar la contraseña', error));
+    }
+} 
+
 module.exports = {
-    login
+    login,
+    passwordVerification
 }
