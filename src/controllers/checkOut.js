@@ -151,7 +151,7 @@ const getAll = async (req, res, next) => {
 
 const getByStaffId = async (req, res, next) => {
     try {
-        const {staffId} = req.params;
+        const { staffId } = req.params;
         const checkOuts = await CheckOut.findAll({
             attributes:['id','reason','check_Out_type','departure_time','arrival_time','status','expiration_time'],
             include: [
@@ -195,12 +195,19 @@ const getByStaffId = async (req, res, next) => {
 const createStaffCheckOut = async (req, res, next) => {
     try {
         const { reason, status, staffId } = req.body;
-         const newCheckOut = await CheckOut.create({
+
+        const isInitiated = status === 'initiated';
+
+        const newCheckOut = await CheckOut.create({
             reason:reason,
             check_Out_type:'staff',
+            departure_time:isInitiated ? getDayAndHour() : null,
             status:status,
-            staff_id:staffId
+            expiration_time:isInitiated ? getExpirationTime() : null,
+            staff_id:staffId,
+            start_date: isInitiated ? Sequelize.literal('CURRENT_DATE') : null,
         });
+        
         const checkOut = await getCheckOutById(newCheckOut.id);
         res.status(201).json({
             message:"Registro creado.",
@@ -213,37 +220,33 @@ const createStaffCheckOut = async (req, res, next) => {
 
 const createVehicularCheckOut = async (req, res, next) => {
     try {
-        const { 
-            reason,
-            status,
-            staffId,
-            vehicleId,
-            outletTankLavel, 
-            destination 
-        } = req.body;
+        const { reason, status, staffId, vehicleId, destination } = req.body;
         
+        const vehicle = await Vehicle.findOne({
+            attributes:['id', 'init_mileage', 'init_tank_lavel'],
+            where: {
+                id:vehicleId
+            }
+        });
         const result = await sequelizeConfig.transaction( async (transaction) => {
-            const vehicle = await Vehicle.findOne({
-                attributes:['id', 'init_mileage'],
-                where: {
-                    id:vehicleId
-                }
-            });
-
+            const isInitiated = status === 'initiated';
             const checkOut = await CheckOut.create(
                 {
                     reason:reason,
                     check_Out_type:'vehicular',
+                    departure_time:isInitiated ? getDayAndHour() : null,
                     status:status,
-                    staff_id:staffId
+                    expiration_time:isInitiated ? getExpirationTime() : null,
+                    staff_id:staffId,
+                    start_date: isInitiated ? Sequelize.literal('CURRENT_DATE') : null,
                 },
                 {transaction}
             );
             
             const checkOutVehicular = await CheckOutVehicular.create(
                 {
-                    departure_km: vehicle.init_mileage,
-                    outlet_tank_lavel: outletTankLavel,
+                    departure_km: isInitiated ? vehicle.init_mileage : null,
+                    outlet_tank_lavel: isInitiated ? vehicle.init_tank_lavel : null,
                     destination: destination,
                     check_out_id: checkOut.id,
                     vehicle_id: vehicleId
@@ -286,7 +289,7 @@ const updateCheckOutStaff = async (req, res, next) => {
 const updateCheckOutVehicular = async (req, res, next) => {
     try {
         const { checkOutId } = req.params;
-        const { reason, vehicleId, outletTankLavel, destination } = req.body;
+        const { reason, vehicleId, destination } = req.body;
 
         await sequelizeConfig.transaction(async (transaction) => {
             await CheckOut.update(
@@ -297,7 +300,6 @@ const updateCheckOutVehicular = async (req, res, next) => {
 
             await CheckOutVehicular.update(
                 {
-                    outlet_tank_lavel:outletTankLavel,
                     destination:destination,
                     vehicle_id:vehicleId
                 },
@@ -317,26 +319,64 @@ const updateCheckOutVehicular = async (req, res, next) => {
 
 const registerExitHour = async (req, res, next) => {
     try {
-        const { checkOutId } = req.params;
-        
-        await CheckOut.update(
-            {
-                start_date: Sequelize.literal('CURRENT_DATE'),
-                departure_time:getDayAndHour(),
-                status:'initiated',
-                expiration_time:getExpirationTime()
-            },
-            {
-                where: {
-                    id:checkOutId
-                }
-            }
-        );
+        const { checkOutId, type } = req.params;
+        await sequelizeConfig.transaction(async (transaction) => {
+            await CheckOut.update(
+                {
+                    start_date: Sequelize.literal('CURRENT_DATE'),
+                    departure_time:getDayAndHour(),
+                    status:'initiated',
+                    expiration_time:getExpirationTime()
+                },
+                {
+                    where: {id:checkOutId}
+                },
+                {transaction}
+            );
+            
+            if(type === 'staff') return;
+            const checkOut = await CheckOut.findOne(
+                {
+                    attributes:[],
+                    where:{id:checkOutId},
+                    include: [
+                        {
+                            model:CheckOutVehicular,
+                            as:'checkOutVehicular',
+                            attributes:[],
+                            include: [
+                                {
+                                    model: Vehicle,
+                                    as: 'vehicle',
+                                    attributes:['id','init_mileage', 'init_tank_lavel']
+                                }
+                            ]
+                        }
+                    ],
+                    raw:true
+                },
+            );
+           
+            const [ _, initMileage, initTankLavel ] = Object.values(checkOut);
+            await CheckOutVehicular.update(
+                {
+                    departure_km: initMileage,
+                    outlet_tank_lavel: initTankLavel,
+                },
+                {
+                    where: {check_out_id:checkOutId}
+                },
+                {transaction}
+            );
+        });
+       
         const checkOut = await getCheckOutById(checkOutId);
-        res.status(201).json({
+        
+        return res.status(201).json({
             message:"Hora de salida registrada",
             checkOut
         });
+       
     } catch (error) {
         next(new handleError('Error al registrar la hora de salida', error));
     }
@@ -384,14 +424,21 @@ const registerInputHourVehicular = async (req, res, next) => {
         const { checkOutId } = req.params;
         const { arrivalKm, inputTankLavel } = req.body;
         
-        const checkOut = await CheckOut.findOne({
+        const checkOutInstance = await CheckOut.findOne({
             include: {
                 model:CheckOutVehicular,
                 as:'checkOutVehicular',
-                attributes:['departure_km','vehicle_id']
+                attributes:['vehicle_id'],
+                include:{
+                    model:Vehicle,
+                    as:'vehicle',
+                    attributes:['init_mileage']
+                }
             },
-            where:{id:checkOutId}
+            where: {id:checkOutId}, 
         });
+        const checkOut = checkOutInstance.toJSON()
+        
         const now = timeUnix();
 
         if(now > checkOut.expiration_time) {
@@ -402,8 +449,10 @@ const registerInputHourVehicular = async (req, res, next) => {
             await removeImg(req.file.filename);
             return next(new handleError('El tiempo para registrar la hora de regreso, expiró', 'EXPIRATION_ERROR'));
         }
-        const {departure_km, vehicle_id} = checkOut.checkOutVehicular;
-        if(arrivalKm <= departure_km) {
+        const { vehicle_id } = checkOut.checkOutVehicular;
+        const { init_mileage } = checkOut.checkOutVehicular.vehicle;
+        
+        if(arrivalKm <= init_mileage) {
             await removeImg(req.file.filename);
             return next(new handleError('El kilometraje, no es válido', 'VALIDATION_ERR'));
         }
@@ -427,7 +476,8 @@ const registerInputHourVehicular = async (req, res, next) => {
             );
             await Vehicle.update(
                 {
-                    init_mileage:arrivalKm
+                    init_mileage:arrivalKm,
+                    init_tank_lavel:inputTankLavel
                 },
                 {where:{id:vehicle_id}},
                 {transaction}

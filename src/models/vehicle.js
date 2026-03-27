@@ -20,6 +20,10 @@ const Vehicle = sequelizeConfig.define(
         init_mileage: {
             type: DataTypes.INTEGER(6),
             allowNull: false,
+        },
+        init_tank_lavel: {
+            type: DataTypes.STRING(10),
+            allowNull: false
         }
     },
     {

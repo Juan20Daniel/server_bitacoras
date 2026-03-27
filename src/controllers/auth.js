@@ -13,9 +13,10 @@ const login = async (req, res, next) => {
             },
             raw:true
         });
-        if(!staff) throw new handleError("No encontrado", "NOT_FOUND_ERR");
-        if(!comparePasswords(password, staff.password)) throw new handleError("No autorizado", "AUTH_ERR");
-        if(!staff.active) throw new handleError("Cuenta inactiva", "ACCESS_ERR");
+        
+        if(!staff) return next(new handleError("No encontrado", "NOT_FOUND_ERR"));
+        if(!comparePasswords(password, staff.password)) return next( new handleError("No autorizado", "AUTH_ERR"));
+        if(!staff.active) return next(new handleError("Cuenta inactiva", "ACCESS_ERR"));
 
         const tokenData = {
             staffId:staff.id,
@@ -53,7 +54,7 @@ const passwordVerification = async (req, res, next) => {
         });
        
         if(!isValidPassword) {
-            return next(new handleError('Contraseña incorrecta o la cuenta no existe', 'AUTH_ERR'));
+            return next(new handleError('Contraseña incorrecta o la cuenta no existe', 'VALIDATION_ERR'));
         }
 
         res.status(200).json({

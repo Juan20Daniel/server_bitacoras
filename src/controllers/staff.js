@@ -59,12 +59,14 @@ const post = async (req, res, next) => {
         );
       }
 
+      const passwordEncrypted = password !== '' ? encryptPassword(password) : null;
+
       await Staff.create(
         {
           firstname:firstname,
           lastname:lastname,
           email:email,
-          password:encryptPassword(password),
+          password:passwordEncrypted,
           department_id:department.id
         },
         {transaction}

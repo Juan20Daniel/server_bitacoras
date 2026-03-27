@@ -19,8 +19,8 @@ router.post('/',
     validateField('deparment'),
     validateField('firstname'),
     validateField('lastname'),
-    validateField('email'),
-    validateField('password'),
+    validateField('email', false),
+    validateField('password', false),
     staffController.post
 );
 

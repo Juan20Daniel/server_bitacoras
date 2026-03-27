@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const vehicleController = require('../controllers/vehicle');
 const {
-    upload, 
-    setUploadFolder, 
-    validateField, 
+    upload,
+    setUploadFolder,
+    validateField,
     validateImage, 
     auth,
     authorize,
@@ -14,7 +14,13 @@ router.get('/',
     auth,
     authorize(['basic','rrhh','operator','admin']),
     vehicleController.get
-)
+);
+
+router.get('/activity',
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    vehicleController.vehicularActivity
+);
 
 router.post('/',
     auth,
@@ -24,6 +30,7 @@ router.post('/',
     validateImage(),
     validateField('vehicleName'),
     validateField('initMileage'),
+    validateField('initTankLavel'),
     vehicleController.post
 );
 

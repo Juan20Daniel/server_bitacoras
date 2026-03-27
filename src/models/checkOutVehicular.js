@@ -11,7 +11,7 @@ const CheckOutVehicular = sequelizeConfig.define(
         },
         departure_km: {
             type: DataTypes.INTEGER(6),
-            allowNull: false
+            allowNull: true
         },
         arrival_km: {
             type: DataTypes.INTEGER(6),
@@ -19,7 +19,7 @@ const CheckOutVehicular = sequelizeConfig.define(
         },
         outlet_tank_lavel: {
             type: DataTypes.STRING(10),
-            allowNull: false
+            allowNull: true
         },
         input_tank_lavel: {
             type: DataTypes.STRING(10),
