@@ -1,9 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const staffController = require('../controllers/staff');
-const { validateField } = require('../middlewares/validateField');
-const { auth } = require('../middlewares/auth');
-const { authorize } = require('../middlewares/authorize');
+const { auth, authorize, validateField } = require('../middlewares');
 
 router.get('/:campId', 
     validateField('campId'),

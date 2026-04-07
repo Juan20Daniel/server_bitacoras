@@ -21,7 +21,9 @@ const regexr = {
     campId: /^[0-9]{1,}$/,
     checkOutId: /^[0-9]{1,}$/,
     arrivalKm:/^[0-9]{1,6}$/,
-    inputTankLavel:/^[A-Za-z0-9 íÍ/]{3,10}$/
+    inputTankLavel:/^[A-Za-z0-9 íÍ/]{3,10}$/,
+    initialDate: /^[0-9/]{10}$/,
+    finalDate: /^[0-9/]{10}$/,
 }
 
 module.exports = regexr;

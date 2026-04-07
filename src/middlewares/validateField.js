@@ -3,7 +3,7 @@ const regexr = require('../utils/regexr');
 const { removeImg } = require('../utils/file');
 
 const searchField = (req, key) => {
-    if(req.hasOwnProperty('query') && req.query.hasOwnProperty(key)) return req.query[key];
+    if(req.query[key]) return req.query[key];
     if(req.body) {
         const body = req.body[key]??false;
         if(body) return req.body[key];

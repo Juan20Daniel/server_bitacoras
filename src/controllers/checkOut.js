@@ -515,7 +515,10 @@ const cancelCheckOut = async (req, res, next) => {
      try {
         const { checkOutId } = req.params;
         await CheckOut.update(
-            {status:'canceled'},
+            {
+                status:'canceled',
+                
+            },
             {where:{id:checkOutId}}
         );
         res.status(201).json({
