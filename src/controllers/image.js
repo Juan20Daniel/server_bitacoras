@@ -6,9 +6,9 @@ const get = (req, res, next) => {
     const folderName = req.uploadFolder;
     const imagePath = path.join(process.cwd(), `public/images/${folderName}`, imageName);
 
-    res.sendFile(imagePath, err => {
-        if(err) {
-            next(new handleError('Error al crear el usuario', error));
+    res.sendFile(imagePath, error => {
+        if(error) {
+            next(new handleError('Error al obtener la imagen', error));
         }
     });
 }

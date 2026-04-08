@@ -6,6 +6,15 @@ const getExpirationTime = () => dayjs().add(expirationTime, 'hours').unix();
 
 const timeUnix = () => dayjs().unix();
 
+const fromStringDateToUnixDate = (date) => {
+    const [ day, mount, year ] = date.split('/');
+    return dayjs(`${year}-${mount}-${day}`).unix();
+}
+
+const fromUnixDateToDateFormat = (date) => {
+    return dayjs.unix(date).format("YYYY-MM-DD");
+}
+
 const getDayAndHour = () => {
     const daysName = {
         0:"Domingo",
@@ -40,5 +49,7 @@ module.exports = {
     expirationTime,
     getExpirationTime,
     timeUnix,
-    getDayAndHour
+    getDayAndHour,
+    fromStringDateToUnixDate,
+    fromUnixDateToDateFormat
 }
