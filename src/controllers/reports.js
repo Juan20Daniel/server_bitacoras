@@ -9,7 +9,9 @@ const {
 } = require('../utils/excel');
 const {
     fromStringDateToUnixDate,
-    fromUnixDateToDateFormat
+    fromUnixDateToDateFormat,
+    fromDbDateToNormalDate,
+    timeUnix
 } = require('../utils/time');
 
 const status = {
@@ -41,7 +43,7 @@ const styles = {
 };
 
 const columnsHeaderStaffDeparture = [
-    { value: "Selfie", key: "selgie", width: 40 },
+    { value: "Selfie", key: "selgie", width: 15 },
     { value: "Nombre", key: "nombre", width: 20 },
     { value: "Apellidos", key: "email", width: 20 },
     { value: "Fecha", key: "estado", width: 15 },
@@ -50,6 +52,17 @@ const columnsHeaderStaffDeparture = [
     { value: "Motivo", key: "estado", width: 30 },
     { value: "Estado", key: "estado", width: 20 },
 ]
+
+const updateExpirationDate = async (expireCheckOutIds) => {
+    try {
+        await CheckOut.update(
+            {status:'incomplete'},
+            {where:{id:expireCheckOutIds}}
+        );
+    } catch (error) {
+        throw error;
+    }
+}
 
 const staffDepartureReport = async (req, res, next) => {
     try {
@@ -62,8 +75,8 @@ const staffDepartureReport = async (req, res, next) => {
             return next(new handleError("Rango de fecha invalido", "RANGE_ERR"));
         }
 
-        const checkOut = await CheckOut.findAll({
-            attributes:['reason','departure_time','arrival_time','selfie_img','status','start_date'],
+        let checkOuts = await CheckOut.findAll({
+            attributes:['id','reason','departure_time','arrival_time','selfie_img','status','expiration_time','start_date'],
             include: [
                 {
                     model:Staff,
@@ -77,16 +90,36 @@ const staffDepartureReport = async (req, res, next) => {
                 },
                 start_date: {
                     [Op.between]:[
-                        fromUnixDateToDateFormat(initialUnixDate), 
+                        fromUnixDateToDateFormat(initialUnixDate),
                         fromUnixDateToDateFormat(finalUnixDate)
                     ]
                 }
-            }
+            },
+            raw:true
         });
 
-        if(checkOut.length <= 0) {
+        if(checkOuts.length <= 0) {
             return next(new handleError("No se encontraron registros", "NOT_FOUND_ERR"));
         }
+
+        const now = timeUnix();
+        const checkExpirationDate = checkOuts.filter(checkOut => {
+            const {expiration_time, status} = checkOut;
+            return (now > expiration_time && status === "initiated");
+        });
+
+        if(checkExpirationDate.length > 0 ) {
+            const expireCheckOutIds = checkExpirationDate.map(c => c.id);
+            
+            const checkOutsCopy = [...checkOuts];
+            checkOuts = checkOutsCopy.map(checkOut => {
+                return expireCheckOutIds.includes(checkOut.id)
+                    ? {...checkOut, status:'incomplete'}
+                    : checkOut;
+            });
+            await updateExpirationDate(expireCheckOutIds);
+        }
+
         //Generar el Excel
         const workbook = createWorkbook();
         //Agregar hoja al excel
@@ -95,20 +128,27 @@ const staffDepartureReport = async (req, res, next) => {
         addHeader(columnsHeaderStaffDeparture, worksheet);
 
         //Centrar horiozontal y verticalmente el campo Estado.
-        worksheet.getRow(1).getCell(7).alignment = {
+        worksheet.getRow(1).getCell(8).alignment = {
             horizontal: "center",
             vertical: "middle"
         };
 
         //Generar las filas
-        checkOut.forEach(checkOut => {
+        checkOuts.forEach(checkOut => {
             const selfieName = checkOut.selfie_img??'';
-            const selfieUrl = selfieName !== '' ? `${BASE_SELFIE_URL}/${checkOut.selfie_img}` : '';
+            const selfieUrl = selfieName !== '' ? `${BASE_SELFIE_URL}/${checkOut.selfie_img}` : null;
+            const selfieLink = selfieUrl 
+                ?   {
+                        text:'Ver selfie',
+                        hyperlink:`${selfieUrl}`
+                    }
+                :   ''
+            const startDate = fromDbDateToNormalDate(checkOut.start_date);
             const row = worksheet.addRow([
-                `${selfieUrl}`,
-                `${checkOut.staff.firstname}`,
-                `${checkOut.staff.lastname}`,
-                `${checkOut.start_date}`,
+                selfieLink,
+                `${checkOut['staff.firstname']}`,
+                `${checkOut['staff.lastname']}`,
+                `${startDate}`,
                 `${checkOut.departure_time??''}`,
                 `${checkOut.arrival_time??''}`,
                 `${checkOut.reason}`,
@@ -117,6 +157,11 @@ const staffDepartureReport = async (req, res, next) => {
             
             row.alignment = {
                 vertical: "middle",
+            }
+            const selfieCell = row.getCell(1);
+            selfieCell.font = {
+                color: { argb: "FF1A66AC" },
+                underline: true
             }
 
             const statusStyle = styles[checkOut.status];

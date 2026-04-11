@@ -1,9 +1,22 @@
 const { DataTypes } = require('sequelize');
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 
-const EquipmentStatic = sequelizeConfig.define(
-    'EquipmentStatic',
+const EquipmentOffice = sequelizeConfig.define(
+    'EquipmentOffice',
     {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        image: {
+            type: DataTypes.STRING(50),
+            allowNull: false,
+        },
+        name: {
+            type: DataTypes.STRING(50),
+            allowNull: false
+        },
         own: {
             type: DataTypes.STRING(50),
             allowNull: false
@@ -35,12 +48,13 @@ const EquipmentStatic = sequelizeConfig.define(
         inventory_type: {
             type: DataTypes.ENUM('office','staff'),
             defaultValue: 'staff'
-        }
+        },
+        
     },
     {
-        tableName: 'equipment_static',
+        tableName: 'equipment_office',
         timestamps: false
     }
 );
 
-module.exports = EquipmentStatic;
+module.exports = EquipmentOffice;

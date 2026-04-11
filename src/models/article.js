@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 
-const Equipment = sequelizeConfig.define(
-    'Equipment',
+const Article = sequelizeConfig.define(
+    'Article',
     {
         id: {
             type: DataTypes.INTEGER,
@@ -17,14 +17,18 @@ const Equipment = sequelizeConfig.define(
             type: DataTypes.STRING(50),
             allowNull: false
         },
-        type: {
-            type: DataTypes.ENUM('variable','static'),
-            defaultValue: 'variable'
-        },
         quantity: {
             type: DataTypes.INTEGER,
             allowNull: false,
             defaultValue: 1
+        },
+        code: {
+            type: DataTypes.STRING(5),
+            allowNull: false
+        },
+        unit: {
+            type: DataTypes.ENUM('PIEZA','PAQUETE','CAJA','BLOCK','TIRAS'),
+            defaultValue: 'PIEZA'
         },
         observations: {
             type: DataTypes.TEXT,
@@ -32,9 +36,9 @@ const Equipment = sequelizeConfig.define(
         }
     },
     {
-        tableName:'equipments',
+        tableName:'articles',
         timestamps: true
     }
 );
 
-module.exports = Equipment;
+module.exports = Article;

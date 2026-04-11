@@ -1,8 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const imageController = require('../controllers/image');
-const { auth } = require('../middlewares/auth');
-const { authorize, setUploadFolder } = require('../middlewares');
+const { auth, authorize, setUploadFolder } = require('../middlewares');
 
 router.get('/:imageName', 
     // auth, 

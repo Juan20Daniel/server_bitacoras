@@ -12,15 +12,21 @@ const fromStringDateToUnixDate = (date) => {
 }
 
 const fromUnixDateToDateFormat = (date) => {
+    console.log()
     return dayjs.unix(date).format("YYYY-MM-DD");
+}
+
+const fromDbDateToNormalDate = (date) => {
+    const formatDate = dayjs(date).format("DD-MM-YYYY");
+    return formatDate.replace(/-/g,'/');
 }
 
 const getDayAndHour = () => {
     const daysName = {
         0:"Domingo",
-        1:"Lines",
+        1:"Lunes",
         2:"Martes",
-        3:"Miercoles",
+        3:"Miércoles",
         4:"Jueves",
         5:"Viernes",
         6:"Sábado"
@@ -51,5 +57,6 @@ module.exports = {
     timeUnix,
     getDayAndHour,
     fromStringDateToUnixDate,
-    fromUnixDateToDateFormat
+    fromUnixDateToDateFormat,
+    fromDbDateToNormalDate
 }

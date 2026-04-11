@@ -1,7 +1,7 @@
 const { Staff } = require('../models');
 const { handleError } = require('../utils/error');
 const { createToken } = require('../utils/jwt');
-const { comparePasswords } = require('../utils/password');
+const { comparePasswords, encryptPassword } = require('../utils/password');
 
 const login = async (req, res, next) => {
     try {
@@ -52,7 +52,7 @@ const passwordVerification = async (req, res, next) => {
         const isValidPassword = passwords.some(p => {
             return comparePasswords(password, p.password);
         });
-       
+        
         if(!isValidPassword) {
             return next(new handleError('Contraseña incorrecta o la cuenta no existe', 'VALIDATION_ERR'));
         }
@@ -64,9 +64,28 @@ const passwordVerification = async (req, res, next) => {
     } catch (error) {
         next(new handleError('Error al verificar la contraseña', error));
     }
-} 
+}
+
+const changePassword = async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { password } = req.body;
+        const passwordEncrypted = encryptPassword(password);
+
+        await Staff.update(
+            {password:passwordEncrypted},
+            {where: {id:id}}
+        );
+
+        res.status(200).json({message: 'Contraseña cambiada.'})
+    } catch (error) {
+        console.log(error);
+        next(new handleError('Error al cambiar la contraseña', error));
+    }
+}
 
 module.exports = {
     login,
-    passwordVerification
+    passwordVerification,
+    changePassword
 }
