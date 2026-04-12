@@ -20,11 +20,20 @@ const regexr = {
     initTankLavel:/^[A-Za-z0-9 íÍ/]{3,10}$/,
     campId: /^[0-9]{1,}$/,
     id: /^[0-9]{1,}$/,
+    deparmentId: /^[0-9]{1,}$/,
     checkOutId: /^[0-9]{1,}$/,
     arrivalKm:/^[0-9]{1,6}$/,
     inputTankLavel:/^[A-Za-z0-9 íÍ/]{3,10}$/,
     initialDate: /^[0-9/]{10}$/,
     finalDate: /^[0-9/]{10}$/,
+
+    equipmentName: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
+    equipmentOwn: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
+    fixedAssetType: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
+    clasification: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/,
+    equipmentBrand: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/,
+    equipmentModel: /^[A-Za-záÁéÉíÍóÓúÚñÑ0-9 ]{3,40}$/,
+    equipmentState: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,15}$/,
 }
 
 module.exports = regexr;

@@ -1,8 +1,8 @@
 const { DataTypes } = require('sequelize');
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 
-const EquipmentOffice = sequelizeConfig.define(
-    'EquipmentOffice',
+const Equipment = sequelizeConfig.define(
+    'Equipment',
     {
         id: {
             type: DataTypes.INTEGER,
@@ -48,13 +48,12 @@ const EquipmentOffice = sequelizeConfig.define(
         inventory_type: {
             type: DataTypes.ENUM('office','staff'),
             defaultValue: 'staff'
-        },
-        
+        }
     },
     {
-        tableName: 'equipment_office',
+        tableName: 'equipment',
         timestamps: false
     }
 );
 
-module.exports = EquipmentOffice;
+module.exports = Equipment;

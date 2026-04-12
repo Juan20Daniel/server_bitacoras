@@ -13,6 +13,10 @@ const Department = sequelizeConfig.define(
             type: DataTypes.STRING(40),
             allowNull: false
         },
+        inventory_type: {
+            type: DataTypes.ENUM('static','variable'),
+            defaultValue: 'static',
+        }
     },
     {
         tableName: 'departments',
