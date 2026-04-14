@@ -12,6 +12,8 @@ const Equipment = require('./equipment');
 const EquipmentFeatures = require('./equipmentFeatures');
 const EquipmentHistory = require('./equipmentHistory');
 
+const StaffEquipment = require('../models/staffEquipment');
+
 const Camp = require('./camps');
 
 //Relation between Camp and Department
@@ -54,16 +56,17 @@ Equipment.belongsTo(Department, {foreignKey:'department_id', as:'department'});
 Equipment.hasMany(EquipmentFeatures, {foreignKey: 'equipment_id', as:'equipmentFeatures'});
 EquipmentFeatures.belongsTo(Equipment, {foreignKey: 'equipment_id', as:'equipment'});
 
-//Relation between Equipment and Staff
+
+//Relation between Equipment, StaffEquipment and Staff
 Equipment.belongsToMany(Staff, {
-    through:'staff_equipment',
-    foreignKey:'equipment_id',
+    through: StaffEquipment,
+    foreignKey: 'equipment_id',
     otherKey: 'staff_id'
 });
 
 Staff.belongsToMany(Equipment, {
-    through:'staff_equipment',
-    foreignKey:'staff_id',
+    through: StaffEquipment,
+    foreignKey: 'staff_id',
     otherKey: 'equipment_id'
 });
 
@@ -80,5 +83,6 @@ module.exports = {
     CheckOutVehicular,
     Equipment,
     EquipmentFeatures,
-    EquipmentHistory
+    EquipmentHistory,
+    StaffEquipment
 };

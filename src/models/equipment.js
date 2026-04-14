@@ -11,7 +11,7 @@ const Equipment = sequelizeConfig.define(
         },
         image: {
             type: DataTypes.STRING(50),
-            allowNull: false,
+            allowNull: true,
         },
         name: {
             type: DataTypes.STRING(50),
@@ -45,9 +45,13 @@ const Equipment = sequelizeConfig.define(
             type: DataTypes.STRING(10),
             allowNull: false
         },
-        inventory_type: {
-            type: DataTypes.ENUM('office','staff'),
-            defaultValue: 'staff'
+        quantity: {
+            type: DataTypes.INTEGER,
+            defaultValue: 1,
+        },
+        observations: {
+            type: DataTypes.STRING(150),
+            allowNull: true
         }
     },
     {

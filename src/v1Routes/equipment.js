@@ -5,17 +5,15 @@ const {
     upload, 
     authorize, 
     auth, 
-    setUploadFolder, 
-    validateImage,
+    setUploadFolder,
     validateField,
 } = require('../middlewares');
 
 router.post('/', 
-    auth, 
+    auth,
     authorize(['operator','admin']),
     setUploadFolder('equipment'),
     upload.single('image'),
-    validateImage(),
     validateField('equipmentName'),
     validateField('equipmentOwn'),
     validateField('fixedAssetType'),
@@ -24,6 +22,10 @@ router.post('/',
     validateField('equipmentModel'),
     validateField('equipmentState'),
     validateField('departmentId'),
+    validateField('quantity'),
+    validateField('inCharge'),
+    validateField('features', false),
+    validateField('observations', false),
     equipmentController.addEquipment
 );
 
