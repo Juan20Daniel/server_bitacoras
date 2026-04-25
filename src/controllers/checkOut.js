@@ -205,7 +205,7 @@ const createStaffCheckOut = async (req, res, next) => {
             status:status,
             expiration_time:isInitiated ? getExpirationTime() : null,
             staff_id:staffId,
-            start_date: isInitiated ? Sequelize.literal('CURRENT_DATE') : null,
+            start_date: isInitiated ? Sequelize.literal('CURRENT_TIMESTAMP') : null,
         });
         
         const checkOut = await getCheckOutById(newCheckOut.id);
@@ -238,7 +238,7 @@ const createVehicularCheckOut = async (req, res, next) => {
                     status:status,
                     expiration_time:isInitiated ? getExpirationTime() : null,
                     staff_id:staffId,
-                    start_date: isInitiated ? Sequelize.literal('CURRENT_DATE') : null,
+                    start_date: isInitiated ? Sequelize.literal('CURRENT_TIMESTAMP') : null,
                 },
                 {transaction}
             );
@@ -323,7 +323,7 @@ const registerExitHour = async (req, res, next) => {
         await sequelizeConfig.transaction(async (transaction) => {
             await CheckOut.update(
                 {
-                    start_date: Sequelize.literal('CURRENT_DATE'),
+                    start_date: Sequelize.literal('CURRENT_TIMESTAMP'),
                     departure_time:getDayAndHour(),
                     status:'initiated',
                     expiration_time:getExpirationTime()
@@ -402,6 +402,7 @@ const registerInputHourStaff = async (req, res, next) => {
             {
                 status:'finalized',
                 arrival_time:getDayAndHour(),
+                finish_date: Sequelize.literal('CURRENT_TIMESTAMP'),
                 selfie_img:filename
             },
             {where:{id:checkOutId}}
@@ -461,6 +462,7 @@ const registerInputHourVehicular = async (req, res, next) => {
                 {
                     status:'finalized',
                     arrival_time:getDayAndHour(),
+                    finish_date: Sequelize.literal('CURRENT_TIMESTAMP'),
                     selfie_img:filename
                 },
                 {where:{id:checkOutId}},

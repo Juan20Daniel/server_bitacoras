@@ -3,6 +3,23 @@ const { Staff, Department } = require('../models');
 const { encryptPassword } = require('../utils/password');
 const {handleError} = require('../utils/error');
 
+const getAll = async (req, res, next) => {
+  try {
+    const staff = await Staff.findAll({
+      attributes:['id', 'firstname', 'lastname'],
+      where: { 
+        active:true
+      }
+    });
+    res.status(200).json({
+      message:'Lista de personal', 
+      staffList:staff
+    });
+  } catch (error) {
+    next(new handleError('Error al obtener la lista del personal', error));
+  }
+};
+
 const getByCampId = async (req, res, next) => {
   try {
     const {campId} = req.params;
@@ -21,11 +38,11 @@ const getByCampId = async (req, res, next) => {
       }
     });
     res.status(200).json({
-      message:'Lista de personal', 
+      message:'Lista de personal por campus', 
       staffList:staff
     });
   } catch (error) {
-    next(new handleError('Error al crear al obtener la lista del personal', error));
+    next(new handleError('Error al obtener la lista del personal por campus', error));
   }
 };
 
@@ -83,6 +100,7 @@ const patch = (req, res) => {
 }
 
 module.exports = {
+  getAll,
   getByCampId,
   post,
   patch

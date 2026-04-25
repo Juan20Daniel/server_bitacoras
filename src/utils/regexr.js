@@ -26,19 +26,19 @@ const regexr = {
     inputTankLavel:/^[A-Za-z0-9 íÍ/]{3,10}$/,
     initialDate: /^[0-9/]{10}$/,
     finalDate: /^[0-9/]{10}$/,
-
-    equipmentName: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
-    equipmentOwn: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
+    
+    own: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
     fixedAssetType: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
     clasification: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/,
-    equipmentBrand: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/,
-    equipmentModel: /^[A-Za-záÁéÉíÍóÓúÚñÑ0-9 ]{3,40}$/,
-    equipmentState: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,15}$/,
+    brand: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/,
+    model: /^[A-Za-záÁéÉíÍóÓúÚñÑ0-9 ]{3,40}$/,
+    state: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,15}$/,
     departmentId: /^[0-9]{1,}$/,
     quantity: /^[0-9]{1,9}$/,
-    inCharge:/^[0-9\]\[,]{3,}$/,
-    features:/^[a-zA-ZáÁéÉíÍóÓúÚñÑ '\]\.\[,]{3,200}$/,
+    inCharge:/^[0-9,]{1,}$/,
+    features:/^[a-zA-ZáÁéÉíÍóÓúÚñÑ ',]{3,200}$/,
     observations: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{5,150}$/,
+    monthAndYear: /^[0-9/]{7}$/,
 }
 
 module.exports = regexr;

@@ -57,17 +57,17 @@ Equipment.hasMany(EquipmentFeatures, {foreignKey: 'equipment_id', as:'equipmentF
 EquipmentFeatures.belongsTo(Equipment, {foreignKey: 'equipment_id', as:'equipment'});
 
 
-//Relation between Equipment, StaffEquipment and Staff
+//Relation between Equipment - StaffEquipment - Staff
 Equipment.belongsToMany(Staff, {
     through: StaffEquipment,
     foreignKey: 'equipment_id',
-    otherKey: 'staff_id'
+    otherKey: 'staff_id',
 });
 
 Staff.belongsToMany(Equipment, {
     through: StaffEquipment,
     foreignKey: 'staff_id',
-    otherKey: 'equipment_id'
+    otherKey: 'equipment_id',
 });
 
 //Relation between Department and EquipmentHistory

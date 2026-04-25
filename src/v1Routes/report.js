@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { auth, authorize, validateField } = require('../middlewares');
 const reportController = require('../controllers/reports');
+const { auth, authorize, validateField } = require('../middlewares');
 
 router.get(
     '/staffDepartureReport',
@@ -16,6 +16,7 @@ router.get(
     '/vehicleExitReport',
     auth,
     authorize(['admin','operator']),
+    validateField('monthAndYear'),
     reportController.vehicleExitReport
 );
 

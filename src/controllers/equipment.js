@@ -1,4 +1,4 @@
-const { Equipment, EquipmentFeatures, StaffEquipment } = require('../models')
+const { Equipment, EquipmentFeatures, StaffEquipment, Staff } = require('../models')
 const { handleError } = require("../utils/error");
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { moveImg, removeImg } = require('../utils/file');
@@ -14,14 +14,14 @@ const normalizeNumFolio = (folio) => {
 const normalizeFeatures = (features, equipmentID) => { 
     if(!features) return [];
 
-    const featuresArray = features.replace(/[\[\]' ]/g, '').split(',');
+    const featuresArray = features.split(',');
     return featuresArray.map(feature => {
         return {description:feature, equipment_id:equipmentID}
     });
 }
 
 const normalizeInCharge = (inCharge, equipmentID) => {
-    const inChargeArray = inCharge.replace(/[\[\]]/g, '').split(',');
+    const inChargeArray = inCharge.split(',');
     return inChargeArray.map(inCharge => {
         return {equipment_id:equipmentID, staff_id:parseInt(inCharge, 10)}
     });
@@ -47,16 +47,42 @@ const createFolio = async () => {
     return `E-${numfolio}`;
 }
 
+const getEquipmentById = async (id) => {
+    const equipment = await Equipment.findOne({
+        attributes: [
+            'id', 
+            'image', 
+            'own', 
+            'fixed_asset_type', 
+            'clasification', 
+            'brand', 
+            'model', 
+            'state', 
+            'folio', 
+            'quantity', 
+            'observations'
+        ],
+        include: [
+            {
+                model:Staff,
+                attributes: ['id', 'firstname', 'lastname']
+            }
+        ],
+        where:{id:id}
+    });
+
+    return equipment;
+}
+
 const addEquipment = async (req, res, next) => {
     try {
         const {
-            equipmentName,
-            equipmentOwn,
+            own,
             fixedAssetType,
             clasification,
-            equipmentBrand,
-            equipmentModel,
-            equipmentState,
+            brand,
+            model,
+            state,
             departmentId,
             quantity,
             inCharge,
@@ -69,17 +95,16 @@ const addEquipment = async (req, res, next) => {
         }
         const folio = await createFolio();
         
-        await sequelizeConfig.transaction( async (transaction) => {
+        const result = await sequelizeConfig.transaction( async (transaction) => {
             const equipmentAdded = await Equipment.create(
                 {
                     image:image,
-                    name:equipmentName,
-                    own:equipmentOwn,
+                    own:own,
                     fixed_asset_type:fixedAssetType,
                     clasification:clasification,
-                    brand:equipmentBrand,
-                    model:equipmentModel,
-                    state:equipmentState,
+                    brand:brand,
+                    model:model,
+                    state:state,
                     folio:folio,
                     quantity:quantity,
                     observations:observations,
@@ -102,13 +127,18 @@ const addEquipment = async (req, res, next) => {
                 inChargeNormalized,
                 {transaction}
             );
+            return equipmentAdded;
         });
        
         if(req.file) {
             await moveImg(req.file, req.uploadFolder);
         }
-        
-        res.status(201).json({message:'Equipo agregado'});
+        const newEquipment = await getEquipmentById(result.id);
+
+        res.status(201).json({
+            message: 'Equipo agregado',
+            equipment: newEquipment
+        });
     } catch (error) {
         console.log(error);
         if(req.file) await removeImg(req.file.filename);

@@ -13,10 +13,6 @@ const Equipment = sequelizeConfig.define(
             type: DataTypes.STRING(50),
             allowNull: true,
         },
-        name: {
-            type: DataTypes.STRING(50),
-            allowNull: false
-        },
         own: {
             type: DataTypes.STRING(50),
             allowNull: false

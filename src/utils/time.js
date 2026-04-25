@@ -1,4 +1,5 @@
 const dayjs = require('dayjs');
+const utc = require("dayjs/plugin/utc");
 
 const expirationTime = 10
 
@@ -6,19 +7,28 @@ const getExpirationTime = () => dayjs().add(expirationTime, 'hours').unix();
 
 const timeUnix = () => dayjs().unix();
 
+const getDaysInMonth = (month, year) => {
+    return dayjs().set('year', year).set('month', month).daysInMonth();
+}
+
 const fromStringDateToUnixDate = (date) => {
     const [ day, mount, year ] = date.split('/');
     return dayjs(`${year}-${mount}-${day}`).unix();
 }
 
 const fromUnixDateToDateFormat = (date) => {
-    console.log()
     return dayjs.unix(date).format("YYYY-MM-DD");
 }
 
 const fromDbDateToNormalDate = (date) => {
-    const formatDate = dayjs(date).format("DD-MM-YYYY");
+    dayjs.extend(utc);
+    const formatDate = dayjs.utc(date).local().format("DD-MM-YYYY");
     return formatDate.replace(/-/g,'/');
+}
+
+const fromDbDateToUnix = (date) => {
+    const formatDate = dayjs.utc(date).local().unix();
+    return formatDate
 }
 
 const getDayAndHour = () => {
@@ -56,7 +66,9 @@ module.exports = {
     getExpirationTime,
     timeUnix,
     getDayAndHour,
+    getDaysInMonth,
     fromStringDateToUnixDate,
     fromUnixDateToDateFormat,
-    fromDbDateToNormalDate
+    fromDbDateToNormalDate,
+    fromDbDateToUnix
 }

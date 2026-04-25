@@ -32,7 +32,7 @@ const getDepartmentById = async (req, res, next) => {
         const {departmentId} = req.params;
        
         const deparment = await Department.findOne({
-            attributes:['id','name'],
+            attributes:['id','name','inventory_type'],
             where:{id:departmentId}
         });
 

@@ -18,7 +18,11 @@ const CheckOut = sequelizeConfig.define(
             defaultValue: 'staff',
         },
         start_date: {
-            type: DataTypes.DATEONLY,
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        finish_date: {
+            type: DataTypes.DATE,
             allowNull: true
         },
         departure_time: {

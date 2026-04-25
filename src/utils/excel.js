@@ -8,7 +8,7 @@ const createWorksheet = (workbook) => {
     return workbook.addWorksheet("Tamplate");
 } 
 
-const addHeader = (headers, worksheet, font=14) => {
+const addHeader = (headers, worksheet) => {
     worksheet.columns = headers.map(header => ({
         header: header.value, 
         key: header.key, 
@@ -28,7 +28,7 @@ const addHeader = (headers, worksheet, font=14) => {
         cell.font = {
             bold: true,
             color: { argb: "FFFFFFFF" },
-            size: font
+            size: 12
         };
     });
 
