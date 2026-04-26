@@ -1,7 +1,8 @@
-const { Equipment, EquipmentFeatures, StaffEquipment, Staff } = require('../models')
+const { Equipment, EquipmentFeatures, StaffEquipment, Staff } = require('../models');
 const { handleError } = require("../utils/error");
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { moveImg, removeImg } = require('../utils/file');
+const { normalizeQueryParams } = require('../utils/queryParams');
 
 const normalizeNumFolio = (folio) => {
     let numFolio = folio.replace('E-','');
@@ -66,6 +67,11 @@ const getEquipmentById = async (id) => {
             {
                 model:Staff,
                 attributes: ['id', 'firstname', 'lastname']
+            },
+            {
+                model:EquipmentFeatures,
+                attributes: ['id', 'description'],
+                as: 'equipmentFeatures'
             }
         ],
         where:{id:id}
@@ -89,7 +95,7 @@ const addEquipment = async (req, res, next) => {
             features,
             observations
         } = req.body;
-        let image = null
+        let image = null;
         if(req.file) {
             image = req.file.filename;
         }
@@ -123,6 +129,7 @@ const addEquipment = async (req, res, next) => {
             }
             
             const inChargeNormalized = normalizeInCharge(inCharge, equipmentAdded.id);
+            console.log(inChargeNormalized)
             await StaffEquipment.bulkCreate(
                 inChargeNormalized,
                 {transaction}
@@ -146,6 +153,55 @@ const addEquipment = async (req, res, next) => {
     }
 }
 
+const equipmentsByDepartment = async (req, res, next) => {
+    try {
+        const { departmentId } = req.params;
+        const page =  normalizeQueryParams(req.query.page);
+        const pageSize = 10;
+
+        const equipments = await Equipment.findAll({
+            attributes: [
+                'id', 
+                'image', 
+                'own', 
+                'fixed_asset_type', 
+                'clasification', 
+                'brand', 
+                'model', 
+                'state', 
+                'folio', 
+                'quantity', 
+                'observations'
+            ],
+            include: [
+                {
+                    model:Staff,
+                    attributes: ['id', 'firstname', 'lastname']
+                },
+                {
+                    model:EquipmentFeatures,
+                    attributes: ['id', 'description'],
+                    as: 'equipmentFeatures'
+                }
+            ],
+            limit: pageSize,
+            offset: (page - 1) * pageSize,
+            where: {
+                department_id:departmentId
+            }
+        });
+        
+        res.status(201).json({
+            message: 'Lista de equipos',
+            nextPage: page+1,
+            equipments: equipments,
+        });
+    } catch (error) {
+        next(new handleError('Error al obtener los equipos'));
+    }
+}
+
 module.exports = {
-    addEquipment
+    addEquipment,
+    equipmentsByDepartment
 }

@@ -28,17 +28,20 @@ const regexr = {
     finalDate: /^[0-9/]{10}$/,
     
     own: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
-    fixedAssetType: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
+    fixedAssetType: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
     clasification: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/,
-    brand: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/,
-    model: /^[A-Za-záÁéÉíÍóÓúÚñÑ0-9 ]{3,40}$/,
+    brand: /^[0-9A-Za-záÁéÉíÍóÓúÚñ.Ñ -]{3,40}$/,
+    model: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/,
     state: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,15}$/,
     departmentId: /^[0-9]{1,}$/,
     quantity: /^[0-9]{1,9}$/,
     inCharge:/^[0-9,]{1,}$/,
-    features:/^[a-zA-ZáÁéÉíÍóÓúÚñÑ ',]{3,200}$/,
-    observations: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{5,150}$/,
+    features:/^[0-9.a-zA-ZáÁéÉíÍóÓúÚñÑ, '_-]{3,200}$/,
+    observations: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ ]{5,150}$/,
     monthAndYear: /^[0-9/]{7}$/,
+
+    offset:/^[0-9]{1,}$/,
+    page:/^[0-9]{1,}$/,
 }
 
 module.exports = regexr;

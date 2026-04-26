@@ -9,6 +9,13 @@ const {
     validateField,
 } = require('../middlewares');
 
+router.get('/by-department/:departmentId',
+    auth,
+    authorize(['operator','admin']),
+    validateField('departmentId'),
+    equipmentController.equipmentsByDepartment
+)
+
 router.post('/', 
     auth,
     authorize(['operator','admin']),
