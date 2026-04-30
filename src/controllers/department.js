@@ -33,6 +33,13 @@ const getDepartmentById = async (req, res, next) => {
        
         const deparment = await Department.findOne({
             attributes:['id','name','inventory_type'],
+            include: [
+                {
+                    model:Camp,
+                    as:'camp',
+                    attributes: ['id','city','school_type']
+                }
+            ],
             where:{id:departmentId}
         });
 

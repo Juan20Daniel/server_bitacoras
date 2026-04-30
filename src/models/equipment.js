@@ -48,11 +48,15 @@ const Equipment = sequelizeConfig.define(
         observations: {
             type: DataTypes.STRING(150),
             allowNull: true
+        },
+        inventory_type: {
+            type: DataTypes.ENUM('department','employee'),
+            defaultValue: 'department'
         }
     },
     {
         tableName: 'equipment',
-        timestamps: false
+        timestamps: true
     }
 );
 

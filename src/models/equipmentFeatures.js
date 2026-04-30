@@ -10,7 +10,7 @@ const EquipmentFeatures = sequelizeConfig.define(
             autoIncrement: true
         },
         description: {
-            type: DataTypes.STRING(40),
+            type: DataTypes.STRING(200),
             allowNull: false
         }
     },

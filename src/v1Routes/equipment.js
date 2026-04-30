@@ -32,6 +32,7 @@ router.post('/',
     validateField('inCharge'),
     validateField('features', false),
     validateField('observations', false),
+    validateField('inventoryType'),
     equipmentController.addEquipment
 );
 

@@ -51,16 +51,16 @@ const createFolio = async () => {
 const getEquipmentById = async (id) => {
     const equipment = await Equipment.findOne({
         attributes: [
-            'id', 
-            'image', 
-            'own', 
-            'fixed_asset_type', 
-            'clasification', 
-            'brand', 
-            'model', 
-            'state', 
-            'folio', 
-            'quantity', 
+            'id',
+            'image',
+            'own',
+            'fixed_asset_type',
+            'clasification',
+            'brand',
+            'model',
+            'state',
+            'folio',
+            'quantity',
             'observations'
         ],
         include: [
@@ -93,7 +93,8 @@ const addEquipment = async (req, res, next) => {
             quantity,
             inCharge,
             features,
-            observations
+            observations,
+            inventoryType
         } = req.body;
         let image = null;
         if(req.file) {
@@ -114,7 +115,8 @@ const addEquipment = async (req, res, next) => {
                     folio:folio,
                     quantity:quantity,
                     observations:observations,
-                    department_id:departmentId
+                    department_id:departmentId,
+                    inventoryType:inventoryType
                 },
                 {transaction}
             );
@@ -171,7 +173,8 @@ const equipmentsByDepartment = async (req, res, next) => {
                 'state', 
                 'folio', 
                 'quantity', 
-                'observations'
+                'observations',
+                'createdAt'
             ],
             include: [
                 {
@@ -187,12 +190,14 @@ const equipmentsByDepartment = async (req, res, next) => {
             limit: pageSize,
             offset: (page - 1) * pageSize,
             where: {
-                department_id:departmentId
+                department_id:departmentId,
+                inventory_type:'department'
             }
         });
         
         res.status(201).json({
             message: 'Lista de equipos',
+            pageSize: pageSize,
             nextPage: page+1,
             equipments: equipments,
         });

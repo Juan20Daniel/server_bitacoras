@@ -31,4 +31,11 @@ router.get('/article/:imageName',
     imageController.get
 );
 
+router.get('/equipment/:imageName', 
+    // auth, 
+    // authorize(['basic','rrhh','operator','admin']),
+    setUploadFolder('equipment'),
+    imageController.get
+);
+
 module.exports = router;

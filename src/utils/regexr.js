@@ -29,17 +29,17 @@ const regexr = {
     
     own: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
     fixedAssetType: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
-    clasification: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/,
-    brand: /^[0-9A-Za-záÁéÉíÍóÓúÚñ.Ñ -]{3,40}$/,
-    model: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/,
-    state: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,15}$/,
+    clasification: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ.,:/_ -]{3,40}$/,
+    brand: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ.,:/_ -]{3,40}$/,
+    model: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ.,:/_ -]{3,40}$/,
+    state: /^new|regular|good$/,
     departmentId: /^[0-9]{1,}$/,
     quantity: /^[0-9]{1,9}$/,
     inCharge:/^[0-9,]{1,}$/,
     features:/^[0-9.a-zA-ZáÁéÉíÍóÓúÚñÑ, '_-]{3,200}$/,
     observations: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ ]{5,150}$/,
     monthAndYear: /^[0-9/]{7}$/,
-
+    inventoryType:/^department|employee$/,
     offset:/^[0-9]{1,}$/,
     page:/^[0-9]{1,}$/,
 }
