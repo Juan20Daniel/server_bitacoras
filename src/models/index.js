@@ -70,9 +70,9 @@ Staff.belongsToMany(Equipment, {
     otherKey: 'equipment_id',
 });
 
-//Relation between Department and EquipmentHistory
-Department.hasMany(EquipmentHistory, {foreignKey: 'department_id'});
-EquipmentHistory.belongsTo(Department, {foreignKey: 'department_id'});
+//Relation between Equipment and EquipmentHistory
+Equipment.hasOne(EquipmentHistory, {foreignKey: 'equipment_id', as:'equipmentHistory'});
+EquipmentHistory.belongsTo(Equipment, {foreignKey: 'equipment_id', as:'equipment'});
 
 module.exports = {
     Camp,

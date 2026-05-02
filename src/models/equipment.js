@@ -52,6 +52,10 @@ const Equipment = sequelizeConfig.define(
         inventory_type: {
             type: DataTypes.ENUM('department','employee'),
             defaultValue: 'department'
+        },
+        isActive: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true
         }
     },
     {

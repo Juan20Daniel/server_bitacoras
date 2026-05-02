@@ -1,4 +1,4 @@
-const { Equipment, EquipmentFeatures, StaffEquipment, Staff } = require('../models');
+const { Equipment, EquipmentFeatures, StaffEquipment, Staff, EquipmentHistory } = require('../models');
 const { handleError } = require("../utils/error");
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { moveImg, removeImg } = require('../utils/file');
@@ -74,7 +74,10 @@ const getEquipmentById = async (id) => {
                 as: 'equipmentFeatures'
             }
         ],
-        where:{id:id}
+        where:{
+            id:id,
+            isActive:true
+        }
     });
 
     return equipment;
@@ -121,6 +124,11 @@ const addEquipment = async (req, res, next) => {
                 {transaction}
             );
 
+            await EquipmentHistory.create(
+                {equipment_id:equipmentAdded.id},
+                {transaction}
+            );
+
             const featuresNormalized = normalizeFeatures(features, equipmentAdded.id);
            
             if(featuresNormalized.lenght !== 0) {
@@ -145,7 +153,7 @@ const addEquipment = async (req, res, next) => {
         const newEquipment = await getEquipmentById(result.id);
 
         res.status(201).json({
-            message: 'Equipo agregado',
+            message: 'Equipo agregado.',
             equipment: newEquipment
         });
     } catch (error) {
