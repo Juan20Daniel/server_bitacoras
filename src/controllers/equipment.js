@@ -222,25 +222,27 @@ const edithEquipment = async (req, res, next) => {
                 message: 'No hay datos para editar.'     
             });
         }
-        const {
-            own,
-            fixedAssetType,
-            clasification,
-            brand,
-            model,
-            state,
-            quantity,
-            inCharge,
-            features,
-            observations
-        } = req.body;
+        
         const { equipmentId } = req.params;
-        const file = req.file;
 
-        let imageFile = null;
-        if(file) {
+        const lastEquioment = await getEquipmentById(equipmentId);
+
+        if(req.file) {
             imageFile = file;
         }
+
+        const data = req.body;
+
+        if(data.inCharge) {
+            const lastInCharges = lastEquioment.Staff;
+            
+        }
+
+        if(data.features) {
+
+        }
+
+
 
         res.status(201).json({
             message: 'Equipo editado.',
@@ -266,8 +268,26 @@ const edithEquipment = async (req, res, next) => {
     }
 }
 
+const inactiveEquipment = async (req, res, next) => {
+    try {
+        const { equipmentId } = req.params;
+        
+        await Equipment.update(
+            {active:false},
+            {where:{id:equipmentId}}
+        );
+
+        res.status(201).json({
+            message: 'Equipo inactivado',
+        });
+    } catch (error) {
+        next(new handleError('Error al inctivar el equipo'));
+    }
+}
+
 module.exports = {
     addEquipment,
     equipmentsByDepartment,
-    edithEquipment
+    edithEquipment,
+    inactiveEquipment
 }
