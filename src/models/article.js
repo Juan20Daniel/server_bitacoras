@@ -33,6 +33,10 @@ const Article = sequelizeConfig.define(
         observations: {
             type: DataTypes.TEXT,
             allowNull: true
+        },
+        active: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true
         }
     },
     {

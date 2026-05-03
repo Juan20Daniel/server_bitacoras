@@ -36,4 +36,24 @@ router.post('/',
     equipmentController.addEquipment
 );
 
+
+router.patch('/:equipmentId', 
+    auth,
+    authorize(['operator','admin']),
+    setUploadFolder('equipment'),
+    upload.single('image'),
+    validateField('own', false),
+    validateField('fixedAssetType', false),
+    validateField('clasification', false),
+    validateField('brand', false),
+    validateField('model', false),
+    validateField('state', false),
+    validateField('quantity', false),
+    validateField('inCharge', false),
+    validateField('features', false),
+    validateField('observations', false),
+    validateField('equipmentId'),
+    equipmentController.edithEquipment
+);
+
 module.exports = router;

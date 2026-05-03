@@ -16,6 +16,10 @@ const Department = sequelizeConfig.define(
         inventory_type: {
             type: DataTypes.ENUM('static','variable'),
             defaultValue: 'static',
+        },
+        active: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true
         }
     },
     {

@@ -24,6 +24,10 @@ const Vehicle = sequelizeConfig.define(
         init_tank_lavel: {
             type: DataTypes.STRING(10),
             allowNull: false
+        },
+        active: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true
         }
     },
     {

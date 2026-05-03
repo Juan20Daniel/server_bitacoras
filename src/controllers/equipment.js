@@ -76,11 +76,63 @@ const getEquipmentById = async (id) => {
         ],
         where:{
             id:id,
-            isActive:true
+            active:true
         }
     });
 
     return equipment;
+}
+
+
+const equipmentsByDepartment = async (req, res, next) => {
+    try {
+        const { departmentId } = req.params;
+        const page =  normalizeQueryParams(req.query.page);
+        const pageSize = 10;
+
+        const equipments = await Equipment.findAll({
+            attributes: [
+                'id', 
+                'image', 
+                'own', 
+                'fixed_asset_type', 
+                'clasification', 
+                'brand', 
+                'model', 
+                'state', 
+                'folio', 
+                'quantity', 
+                'observations',
+                'createdAt'
+            ],
+            include: [
+                {
+                    model:Staff,
+                    attributes: ['id', 'firstname', 'lastname']
+                },
+                {
+                    model:EquipmentFeatures,
+                    attributes: ['id', 'description'],
+                    as: 'equipmentFeatures'
+                }
+            ],
+            limit: pageSize,
+            offset: (page - 1) * pageSize,
+            where: {
+                department_id:departmentId,
+                inventory_type:'department'
+            }
+        });
+        
+        res.status(201).json({
+            message: 'Lista de equipos',
+            pageSize: pageSize,
+            nextPage: page+1,
+            equipments: equipments,
+        });
+    } catch (error) {
+        next(new handleError('Error al obtener los equipos'));
+    }
 }
 
 const addEquipment = async (req, res, next) => {
@@ -163,58 +215,59 @@ const addEquipment = async (req, res, next) => {
     }
 }
 
-const equipmentsByDepartment = async (req, res, next) => {
+const edithEquipment = async (req, res, next) => {
     try {
-        const { departmentId } = req.params;
-        const page =  normalizeQueryParams(req.query.page);
-        const pageSize = 10;
+        if(!req.body) {
+            return res.status(201).json({
+                message: 'No hay datos para editar.'     
+            });
+        }
+        const {
+            own,
+            fixedAssetType,
+            clasification,
+            brand,
+            model,
+            state,
+            quantity,
+            inCharge,
+            features,
+            observations
+        } = req.body;
+        const { equipmentId } = req.params;
+        const file = req.file;
 
-        const equipments = await Equipment.findAll({
-            attributes: [
-                'id', 
-                'image', 
-                'own', 
-                'fixed_asset_type', 
-                'clasification', 
-                'brand', 
-                'model', 
-                'state', 
-                'folio', 
-                'quantity', 
-                'observations',
-                'createdAt'
-            ],
-            include: [
-                {
-                    model:Staff,
-                    attributes: ['id', 'firstname', 'lastname']
-                },
-                {
-                    model:EquipmentFeatures,
-                    attributes: ['id', 'description'],
-                    as: 'equipmentFeatures'
-                }
-            ],
-            limit: pageSize,
-            offset: (page - 1) * pageSize,
-            where: {
-                department_id:departmentId,
-                inventory_type:'department'
+        let imageFile = null;
+        if(file) {
+            imageFile = file;
+        }
+
+        res.status(201).json({
+            message: 'Equipo editado.',
+            equipment: {
+                id:equipmentId,
+                image:imageFile,
+                own,
+                fixedAssetType,
+                clasification,
+                brand,
+                model,
+                state,
+                quantity,
+                inCharge,
+                features,
+                observations
             }
         });
-        
-        res.status(201).json({
-            message: 'Lista de equipos',
-            pageSize: pageSize,
-            nextPage: page+1,
-            equipments: equipments,
-        });
     } catch (error) {
-        next(new handleError('Error al obtener los equipos'));
+        console.log(error);
+        if(req.file) await removeImg(req.file.filename);
+        next(new handleError('Error al editar el equipo'));
     }
 }
 
 module.exports = {
     addEquipment,
-    equipmentsByDepartment
+    equipmentsByDepartment,
+    edithEquipment
 }

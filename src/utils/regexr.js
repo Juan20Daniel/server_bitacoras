@@ -42,6 +42,8 @@ const regexr = {
     inventoryType:/^department|employee$/,
     offset:/^[0-9]{1,}$/,
     page:/^[0-9]{1,}$/,
+
+    equipmentId: /^[0-9]{1,}$/,
 }
 
 module.exports = regexr;

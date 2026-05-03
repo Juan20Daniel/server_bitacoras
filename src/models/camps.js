@@ -17,6 +17,10 @@ const Camp = sequelizeConfig.define(
             type: DataTypes.ENUM('Universidad','Bachillerato'),
             allowNull: false
         },
+        active: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: true
+        }
     },
     {
         tableName:'camps',

@@ -53,7 +53,7 @@ const Equipment = sequelizeConfig.define(
             type: DataTypes.ENUM('department','employee'),
             defaultValue: 'department'
         },
-        isActive: {
+        active: {
             type: DataTypes.BOOLEAN,
             defaultValue: true
         }
