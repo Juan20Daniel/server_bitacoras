@@ -8,7 +8,7 @@ const get = (req, res, next) => {
 
     res.sendFile(imagePath, error => {
         if(error) {
-            next(new handleError('Error al obtener la imagen', error));
+            next(new handleError('Error al obtener la imagen', "SERVER_ERR"));
         }
     });
 }

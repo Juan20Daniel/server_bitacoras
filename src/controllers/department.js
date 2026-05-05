@@ -23,7 +23,7 @@ const getDepartmentByCampus = async (req, res, next) => {
         res.status(200).json({message:'Lista de departamentos', deparments});
 
     } catch (error) {
-        next(new handleError('Error al listar los departamentos', error));
+        next(new handleError('Error al listar los departamentos', "SERVER_ERR"));
     }
 };
 
@@ -46,7 +46,7 @@ const getDepartmentById = async (req, res, next) => {
         res.status(200).json({message:'Departamento', deparment});
 
     } catch (error) {
-        next(new handleError('Error al obtener el departamento', error));
+        next(new handleError('Error al obtener el departamento', "SERVER_ERR"));
     }
 };
 

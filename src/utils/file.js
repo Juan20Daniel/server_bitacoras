@@ -1,9 +1,9 @@
 const fs = require('fs/promises');
 const path = require('path');
 
-const removeImg = async (imageName) => {
+const removeImg = async (imageName, urlFragment='public/temp') => {
     try {
-        const imagePath = path.join(process.cwd(), `public/temp`, imageName);
+        const imagePath = path.join(process.cwd(), `${urlFragment}`, imageName);
 
         await fs.unlink(imagePath);
         

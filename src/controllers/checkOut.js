@@ -81,7 +81,7 @@ const getByCampId = async (req, res, next) => {
             checkOutList:validCheckOuts
         });
     } catch (error) {
-        next(new handleError('Error al obtener todos los registros de salida.', error));
+        next(new handleError('Error al obtener todos los registros de salida.', "SERVER_ERR"));
     }
 }
 
@@ -144,7 +144,7 @@ const getAll = async (req, res, next) => {
             checkOutList:validCheckOuts
         });
     } catch (error) {
-        next(new handleError('Error al obtener todos los registros de salida.', error));
+        next(new handleError('Error al obtener todos los registros de salida.', "SERVER_ERR"));
     }
 }
 
@@ -188,7 +188,7 @@ const getByStaffId = async (req, res, next) => {
             checkOutList:validCheckOuts
         });
     } catch (error) {
-        next(new handleError('Error al obtener los registros de salida', error));
+        next(new handleError('Error al obtener los registros de salida', "SERVER_ERR"));
     }
 }
 
@@ -264,7 +264,7 @@ const createVehicularCheckOut = async (req, res, next) => {
             newCheckOut: checkOut
         });
     } catch (error) {
-        next(new handleError('Error al crear el registro de salida', error));
+        next(new handleError('Error al crear el registro de salida', "SERVER_ERR"));
     }
 }
 
@@ -282,7 +282,7 @@ const updateCheckOutStaff = async (req, res, next) => {
             checkOutUpdated
         });
     } catch (error) {
-        next(new handleError('Error al registrar el registro de salida', error));
+        next(new handleError('Error al registrar el registro de salida', "SERVER_ERR"));
     }
 }
 
@@ -313,7 +313,7 @@ const updateCheckOutVehicular = async (req, res, next) => {
             checkOutUpdated
         });
     } catch (error) {
-        next(new handleError('Error al registrar el registro de salida', error));
+        next(new handleError('Error al registrar el registro de salida', "SERVER_ERR"));
     }
 }
 
@@ -378,7 +378,7 @@ const registerExitHour = async (req, res, next) => {
         });
        
     } catch (error) {
-        next(new handleError('Error al registrar la hora de salida', error));
+        next(new handleError('Error al registrar la hora de salida', "SERVER_ERR"));
     }
 }
 
@@ -415,7 +415,7 @@ const registerInputHourStaff = async (req, res, next) => {
         });
     } catch (error) {
         await removeImg(req.file.filename);
-        next(new handleError('Error al registrar la hora de llegada', error));
+        next(new handleError('Error al registrar la hora de llegada', "SERVER_ERR"));
     }
 }
 
@@ -494,7 +494,7 @@ const registerInputHourVehicular = async (req, res, next) => {
         });
     } catch (error) {
         await removeImg(req.file.filename);
-        next(new handleError('Error al registrar la hora de llegada', error));
+        next(new handleError('Error al registrar la hora de llegada', "SERVER_ERR"));
     }
 }
 
@@ -527,7 +527,7 @@ const cancelCheckOut = async (req, res, next) => {
             message:"Registro cancelado",
         });
     } catch (error) {
-        next(new handleError('Error al cancelar el registro', error));
+        next(new handleError('Error al cancelar el registro', "SERVER_ERR"));
     }
 }
 

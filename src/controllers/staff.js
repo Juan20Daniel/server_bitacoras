@@ -16,7 +16,7 @@ const getAll = async (req, res, next) => {
       staffList:staff
     });
   } catch (error) {
-    next(new handleError('Error al obtener la lista del personal', error));
+    next(new handleError('Error al obtener la lista del personal', "SERVER_ERR"));
   }
 };
 
@@ -42,7 +42,7 @@ const getByCampId = async (req, res, next) => {
       staffList:staff
     });
   } catch (error) {
-    next(new handleError('Error al obtener la lista del personal por campus', error));
+    next(new handleError('Error al obtener la lista del personal por campus', "SERVER_ERR"));
   }
 };
 
@@ -91,7 +91,7 @@ const post = async (req, res, next) => {
     });
     res.status(201).json({message:'Usuario creado'});
   } catch (error) {
-    next(new handleError('Error al crear el usuario', error));
+    next(new handleError('Error al crear el usuario', "SERVER_ERR"));
   }
 };
 

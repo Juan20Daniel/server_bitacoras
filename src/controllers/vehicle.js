@@ -9,7 +9,7 @@ const get = async (req, res, next) => {
         });
         res.status(200).json({message:'Vehiculos', vehiclesList:vehices});
     } catch (error) {
-        next(new handleError('Error al crear el usuario', error));
+        next(new handleError('Error al crear el usuario', "SERVER_ERR"));
     }
 }
 
@@ -28,7 +28,7 @@ const post = async (req, res, next) => {
         res.status(201).json({message:'Vehiculo agregado'});
     } catch (error) {
         await removeImg(req.file.filename);
-        next(new handleError('Error al agregar el vehiculo.', error));
+        next(new handleError('Error al agregar el vehiculo.', "SERVER_ERR"));
     }
 }
 
@@ -70,7 +70,7 @@ const vehicularActivity = async (req, res, next) => {
         });
     } catch (error) {
         console.log(error);
-        next(new handleError('Error al consultar la actividad vehicular.', error));
+        next(new handleError('Error al consultar la actividad vehicular.', "SERVER_ERR"));
     }
 }
 

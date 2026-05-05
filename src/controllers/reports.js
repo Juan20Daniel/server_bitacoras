@@ -221,7 +221,7 @@ const staffDepartureReport = async (req, res, next) => {
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) {
-        next(new handleError('Error al descargar el reporte', error));
+        next(new handleError('Error al descargar el reporte', "SERVER_ERR"));
     }
 }
 
@@ -368,7 +368,7 @@ const vehicleExitReport = async (req, res, next) => {
         res.end();
     } catch (error) {
         console.log(error);
-        next(new handleError('Error al descargar el reporte', error));
+        next(new handleError('Error al descargar el reporte', "SERVER_ERR"));
     }
 }
 

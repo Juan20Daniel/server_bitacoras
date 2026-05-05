@@ -56,4 +56,11 @@ router.patch('/:equipmentId',
     equipmentController.edithEquipment
 );
 
+router.delete('/:equipmentId',
+    auth,
+    authorize(['operator','admin']),
+    validateField('equipmentId'),
+    equipmentController.inactiveEquipment
+);
+
 module.exports = router;

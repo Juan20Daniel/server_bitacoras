@@ -66,7 +66,8 @@ const getEquipmentById = async (id) => {
         include: [
             {
                 model:Staff,
-                attributes: ['id', 'firstname', 'lastname']
+                attributes: ['id', 'firstname', 'lastname'],
+                as:'staff'
             },
             {
                 model:EquipmentFeatures,
@@ -108,7 +109,8 @@ const equipmentsByDepartment = async (req, res, next) => {
             include: [
                 {
                     model:Staff,
-                    attributes: ['id', 'firstname', 'lastname']
+                    attributes: ['id', 'firstname', 'lastname'],
+                    as: 'staff'
                 },
                 {
                     model:EquipmentFeatures,
@@ -120,7 +122,8 @@ const equipmentsByDepartment = async (req, res, next) => {
             offset: (page - 1) * pageSize,
             where: {
                 department_id:departmentId,
-                inventory_type:'department'
+                inventory_type:'department',
+                active:true
             }
         });
         
@@ -131,7 +134,7 @@ const equipmentsByDepartment = async (req, res, next) => {
             equipments: equipments,
         });
     } catch (error) {
-        next(new handleError('Error al obtener los equipos'));
+        next(new handleError('Error al obtener los equipos', "SERVER_ERR"));
     }
 }
 
@@ -191,7 +194,7 @@ const addEquipment = async (req, res, next) => {
             }
             
             const inChargeNormalized = normalizeInCharge(inCharge, equipmentAdded.id);
-            console.log(inChargeNormalized)
+            // console.log(inChargeNormalized)
             await StaffEquipment.bulkCreate(
                 inChargeNormalized,
                 {transaction}
@@ -211,7 +214,83 @@ const addEquipment = async (req, res, next) => {
     } catch (error) {
         console.log(error);
         if(req.file) await removeImg(req.file.filename);
-        next(new handleError('Error al agregar el equipo'));
+        next(new handleError('Error al agregar el equipo', "SERVER_ERR"));
+    }
+}
+
+const processUpdateInCharges = (inCharge, currentEquipment) => {
+    if(!inCharge) return {
+        newInCharges:[],
+        inChargesToRemove:[]
+    }
+    const inChargesId = inCharge.split(',')
+    const currentInCharges = currentEquipment.staff;
+
+    const newInCharges = [];
+    const inChargesToRemove = [];
+
+    inChargesId.forEach(inChargeId => {
+        inChargeId = Number(inChargeId);
+        const exists = currentInCharges.find(inCharge => {
+            return inCharge.id === inChargeId;
+        });
+        if(!exists) {
+            newInCharges.push({equipment_id:currentEquipment.id, staff_id:inChargeId});
+        }
+    });
+
+    currentInCharges.forEach(inCharge => {
+        const exists = inChargesId.find(inChargeId => {
+            return Number(inChargeId) === inCharge.id;
+        });
+        if(!exists) {
+            inChargesToRemove.push(inCharge.staffEquipment.id);
+        }
+    });
+
+    return {
+        newInCharges,
+        inChargesToRemove
+    }
+}
+
+const processUpdateFeatures = (features, currentEquipment) => {
+    if(!features) {
+        return {
+            newFeatures:[],
+            featuresToRemove:currentEquipment.equipmentFeatures.map(feature => {
+                return feature.id;
+            })
+        }
+    }
+   
+    const newFeatures = [];
+    const featuresToRemove = [];
+
+    features = features.split(',');
+    const currentFeatures = currentEquipment.equipmentFeatures;
+    
+    features.forEach(feature => {
+        const exists = currentFeatures.find(currentFeature => {
+            return currentFeature.description.trim() === feature.trim();
+        });
+        if(!exists) {
+            newFeatures.push({description:feature.trim(), equipment_id:currentEquipment.id});
+        }
+    });
+
+    currentFeatures.forEach(currentFeature => {
+        const exists = features.find(feature => {
+            return feature.trim() === currentFeature.description.trim();
+        });
+        if(!exists) {
+            featuresToRemove.push(currentFeature.id);
+        }
+    });
+    
+    return {
+        newFeatures,
+        featuresToRemove
     }
 }
 
@@ -222,49 +301,99 @@ const edithEquipment = async (req, res, next) => {
                 message: 'No hay datos para editar.'     
             });
         }
-        
         const { equipmentId } = req.params;
+        const data = {
+            own: req.body.own??false,
+            fixed_asset_type: req.body.fixedAssetType??false,
+            clasification: req.body.clasification??false,
+            brand: req.body.brand??false,
+            model: req.body.model??false,
+            state: req.body.state??false,
+            quantity: req.body.quantity??false,
+            observations: req.body.observations??false
+        }
 
-        const lastEquioment = await getEquipmentById(equipmentId);
+        for(const field in data) {
+            if(!data[field]) delete data[field];
+        }
+
+        const currentEquipment = await getEquipmentById(equipmentId);
+        
+        if(!currentEquipment) {
+            if(req.file) await removeImg(req.file.filename);
+            return next(new handleError('Equipo no encontrado', 'NOT_FOUND_ERR'));
+        }
+        //Mejorar el proceso de movimiento de imagen a la carpeta temp, 
+        //Problema actual, si la imagen ya existe en la db y la que envia el front es lamisma, me cambia el nombre de la imagen.
+        const currentImage = currentEquipment.image;
 
         if(req.file) {
-            imageFile = file;
+            data.image = req.file.filename;
+            //Por si el equipo se agrego sin imagen
+            if(currentImage) {
+                await removeImg(currentImage, 'public/images/equipment/');
+            }
+        } else {
+            data.image = null;
+            if(currentImage) {
+                await removeImg(currentImage, 'public/images/equipment/');
+            }
         }
 
-        const data = req.body;
+        await sequelizeConfig.transaction(async (transaction) => {
 
-        if(data.inCharge) {
-            const lastInCharges = lastEquioment.Staff;
-            
+            await Equipment.update(
+                data, 
+                {where:{id:currentEquipment.id}},
+                {transaction}
+            );
+
+            const {newInCharges, inChargesToRemove} = processUpdateInCharges(req.body.inCharge, currentEquipment);
+           
+            if(inChargesToRemove.length) {
+                await StaffEquipment.destroy(
+                    {where:{id:inChargesToRemove}},
+                    {transaction}
+                );
+            }
+
+            if(newInCharges.length) {
+                await StaffEquipment.bulkCreate(
+                    newInCharges,
+                    {transaction}
+                );
+            }
+        
+            const {newFeatures, featuresToRemove} = processUpdateFeatures(req.body.features, currentEquipment);
+           
+            if(featuresToRemove.length) {
+                await EquipmentFeatures.destroy(
+                    {where:{id:featuresToRemove}},
+                    {transaction}
+                );
+            }
+
+            if(newFeatures.length) {
+                await EquipmentFeatures.bulkCreate(
+                    newFeatures,
+                    {transaction}
+                );
+            }
+        });
+        if(req.file) {
+            await moveImg(req.file, req.uploadFolder);
         }
 
-        if(data.features) {
-
-        }
-
-
+        const equipmentUpdated = await getEquipmentById(equipmentId);
 
         res.status(201).json({
             message: 'Equipo editado.',
-            equipment: {
-                id:equipmentId,
-                image:imageFile,
-                own,
-                fixedAssetType,
-                clasification,
-                brand,
-                model,
-                state,
-                quantity,
-                inCharge,
-                features,
-                observations
-            }
+            equipment:equipmentUpdated
         });
     } catch (error) {
         console.log(error);
         if(req.file) await removeImg(req.file.filename);
-        next(new handleError('Error al editar el equipo'));
+        next(new handleError('Error al editar el equipo', "SERVER_ERR"));
     }
 }
 
@@ -281,7 +410,7 @@ const inactiveEquipment = async (req, res, next) => {
             message: 'Equipo inactivado',
         });
     } catch (error) {
-        next(new handleError('Error al inctivar el equipo'));
+        next(new handleError('Error al inctivar el equipo', "SERVER_ERR"));
     }
 }
 

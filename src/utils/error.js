@@ -1,4 +1,4 @@
-const errorCodes = {
+const errors = {
     //mysql errors
     ER_DUP_ENTRY:{code:"ER_DUP_ENTRY", status:409},
 
@@ -16,33 +16,16 @@ const errorCodes = {
 
 }
 
-const errorCode = (error) => {
-  if (error.original?.code?.startsWith('ER_')) {
-    return errorCodes[error.original?.code];
-  }
-
-  if (error.code?.startsWith('ER_')) {
-    return errorCodes[error.code];
-  }
-
-  if (error.code?.startsWith('E')) {
-    return errorCodes[error.code];
-  }
-  
-  return errorCodes[error]??errorCodes.UNKNOWN_ER;
-}
-
 class handleError extends Error {
   constructor(message, error) {
     super(message);
-    this.errorCode = errorCode(error).code??'UNKNOWN_ER';
-    this.status = errorCode(error).status;
+    this.errorCode = errors[error].code??'UNKNOWN_ER';
+    this.status = errors[error].status;
     this.isOperational = true;
   }
 }
 
 module.exports = {
-  errorCodes,
+  errors,
   handleError,
-  errorCode
 };

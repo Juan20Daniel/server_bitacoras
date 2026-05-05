@@ -7,7 +7,7 @@ const get = async (req, res, next) => {
         
         res.status(200).json({message:"Campus registrados", campsList:camps})
     } catch (error) {
-        next(new handleError('Error al obtener los campus', error));
+        next(new handleError('Error al obtener los campus', "SERVER_ERR"));
     }
 }
 

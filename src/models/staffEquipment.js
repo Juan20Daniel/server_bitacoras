@@ -4,19 +4,18 @@ const { DataTypes } = require('sequelize');
 const StaffEquipment = sequelizeConfig.define(
     'staffEquipment',
     {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
         equipment_id: {
             type: DataTypes.INTEGER,
-            references: {
-                model: 'Equipment',
-                key: 'id'
-            }
+            allowNull: false
         },
         staff_id: {
             type: DataTypes.INTEGER,
-            references: {
-                model: 'Staff',
-                key:'id'
-            }
+            allowNull: false
         }
     },
     {

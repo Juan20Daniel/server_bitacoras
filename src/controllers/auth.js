@@ -36,7 +36,7 @@ const login = async (req, res, next) => {
             user:staffData
         });
     } catch (error) {
-        next(new handleError('Error al iniciar sesión', error));
+        next(new handleError('Error al iniciar sesión', "SERVER_ERR"));
     }
 }
 
@@ -62,7 +62,7 @@ const passwordVerification = async (req, res, next) => {
             isValidPassword
         });
     } catch (error) {
-        next(new handleError('Error al verificar la contraseña', error));
+        next(new handleError('Error al verificar la contraseña', "SERVER_ERR"));
     }
 }
 
@@ -80,7 +80,7 @@ const changePassword = async (req, res, next) => {
         res.status(200).json({message: 'Contraseña cambiada.'})
     } catch (error) {
         console.log(error);
-        next(new handleError('Error al cambiar la contraseña', error));
+        next(new handleError('Error al cambiar la contraseña', "SERVER_ERR"));
     }
 }
 

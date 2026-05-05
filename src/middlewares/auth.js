@@ -24,7 +24,7 @@ const auth = async (req, res, next) => {
         req.staff = tokenDecoded;
         next();
     } catch (error) {
-        next(error);
+        next(new handleError("Error al iniciar sesión", "SERVER_ERR"));
     }
 }
 
