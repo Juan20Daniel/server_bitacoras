@@ -44,6 +44,7 @@ const regexr = {
     page:/^[0-9]{1,}$/,
 
     equipmentId: /^[0-9]{1,}$/,
+    removeImage: /^true|false$/,
 }
 
 module.exports = regexr;

@@ -298,7 +298,7 @@ const edithEquipment = async (req, res, next) => {
     try {
         if(!req.body) {
             return res.status(201).json({
-                message: 'No hay datos para editar.'     
+                message: 'No hay datos para editar.'
             });
         }
         const { equipmentId } = req.params;
@@ -312,33 +312,31 @@ const edithEquipment = async (req, res, next) => {
             quantity: req.body.quantity??false,
             observations: req.body.observations??false
         }
-
         for(const field in data) {
             if(!data[field]) delete data[field];
         }
-
+       
         const currentEquipment = await getEquipmentById(equipmentId);
         
         if(!currentEquipment) {
             if(req.file) await removeImg(req.file.filename);
-            return next(new handleError('Equipo no encontrado', 'NOT_FOUND_ERR'));
+            next(new handleError('Equipo no encontrado.', "NOT_FOUND_ERR"));
         }
-        //Mejorar el proceso de movimiento de imagen a la carpeta temp, 
-        //Problema actual, si la imagen ya existe en la db y la que envia el front es lamisma, me cambia el nombre de la imagen.
-        const currentImage = currentEquipment.image;
-
+        
+        if(currentEquipment.image && req.body.removeImage === 'true') {
+            await removeImg(currentEquipment.image, 'public/images/equipment/');
+        } 
+        
         if(req.file) {
             data.image = req.file.filename;
-            //Por si el equipo se agrego sin imagen
-            if(currentImage) {
-                await removeImg(currentImage, 'public/images/equipment/');
-            }
-        } else {
-            data.image = null;
-            if(currentImage) {
-                await removeImg(currentImage, 'public/images/equipment/');
-            }
         }
+        
+
+        if(!req.file && req.body.removeImage === 'true') {
+            data.image = null;
+        } 
+
+
 
         await sequelizeConfig.transaction(async (transaction) => {
 
@@ -349,7 +347,7 @@ const edithEquipment = async (req, res, next) => {
             );
 
             const {newInCharges, inChargesToRemove} = processUpdateInCharges(req.body.inCharge, currentEquipment);
-           
+       
             if(inChargesToRemove.length) {
                 await StaffEquipment.destroy(
                     {where:{id:inChargesToRemove}},
@@ -365,7 +363,7 @@ const edithEquipment = async (req, res, next) => {
             }
         
             const {newFeatures, featuresToRemove} = processUpdateFeatures(req.body.features, currentEquipment);
-           
+        
             if(featuresToRemove.length) {
                 await EquipmentFeatures.destroy(
                     {where:{id:featuresToRemove}},
@@ -380,6 +378,7 @@ const edithEquipment = async (req, res, next) => {
                 );
             }
         });
+
         if(req.file) {
             await moveImg(req.file, req.uploadFolder);
         }

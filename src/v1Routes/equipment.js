@@ -53,6 +53,7 @@ router.patch('/:equipmentId',
     validateField('features', false),
     validateField('observations', false),
     validateField('equipmentId'),
+    validateField('removeImage'),
     equipmentController.edithEquipment
 );
 
