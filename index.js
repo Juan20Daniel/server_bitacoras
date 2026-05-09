@@ -26,8 +26,8 @@ const server = async () => {
       res.status(404).json({message:'Route not found'});
     })
     app.use((err, req, res, next) => {
-      console.log({isOperational:err.isOperational, status:err.status})
       if(err.isOperational) {
+        console.log(err)
         return res.status(err.status).json({
           errorCode: err.errorCode,
           message: err.message

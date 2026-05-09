@@ -61,7 +61,8 @@ const getEquipmentById = async (id) => {
             'state',
             'folio',
             'quantity',
-            'observations'
+            'observations',
+            'createdAt'
         ],
         include: [
             {
@@ -194,7 +195,7 @@ const addEquipment = async (req, res, next) => {
             }
             
             const inChargeNormalized = normalizeInCharge(inCharge, equipmentAdded.id);
-            // console.log(inChargeNormalized)
+            
             await StaffEquipment.bulkCreate(
                 inChargeNormalized,
                 {transaction}
@@ -322,26 +323,19 @@ const edithEquipment = async (req, res, next) => {
             if(req.file) await removeImg(req.file.filename);
             next(new handleError('Equipo no encontrado.', "NOT_FOUND_ERR"));
         }
-        
         if(currentEquipment.image && req.body.removeImage === 'true') {
             await removeImg(currentEquipment.image, 'public/images/equipment/');
         } 
-        
         if(req.file) {
             data.image = req.file.filename;
         }
-        
-
         if(!req.file && req.body.removeImage === 'true') {
             data.image = null;
         } 
-
-
-
         await sequelizeConfig.transaction(async (transaction) => {
 
             await Equipment.update(
-                data, 
+                data,
                 {where:{id:currentEquipment.id}},
                 {transaction}
             );

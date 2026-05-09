@@ -16,6 +16,7 @@ const validateField = (field, required=true) => {
     return (req, res, next) => {
         const searchResult = searchField(req, field);
         if(!required && !searchResult) return next();
+       
         if(!searchResult) {
             if(req.file) removeImg(req.file.filename);
             return next(new handleError('Error de validación '+field, 'VALIDATION_ERR'));

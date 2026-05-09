@@ -1,7 +1,7 @@
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { Staff, Department } = require('../models');
 const { encryptPassword } = require('../utils/password');
-const {handleError} = require('../utils/error');
+const { handleError } = require('../utils/error');
 
 const getAll = async (req, res, next) => {
   try {
@@ -95,13 +95,9 @@ const post = async (req, res, next) => {
   }
 };
 
-const patch = (req, res) => {
-  res.send('Check Out PATCH endpoint');
-}
 
 module.exports = {
   getAll,
   getByCampId,
-  post,
-  patch
+  post
 };
