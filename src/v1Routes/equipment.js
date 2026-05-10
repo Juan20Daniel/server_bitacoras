@@ -14,7 +14,14 @@ router.get('/by-department/:departmentId',
     authorize(['operator','admin']),
     validateField('departmentId'),
     equipmentController.equipmentsByDepartment
-)
+);
+
+router.get('/by-employee/:employeeId',
+    auth,
+    authorize(['operator','admin']),
+    validateField('employeeId'),
+    equipmentController.equipmentsByEmployee
+);
 
 router.post('/', 
     auth,

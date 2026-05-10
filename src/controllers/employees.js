@@ -4,44 +4,65 @@ const { handleError } = require('../utils/error');
 const { encryptPassword } = require('../utils/password');
 const { normalizeQueryParams } = require('../utils/queryParams');
 
-const getAll = async (req, res, next) => {
+const getEmployeeById = async (req, res, next) => {
+  try {
+    const { employeeId } = req.params;
+    const employee = await Staff.findOne({
+      attributes:['id', 'firstname', 'lastname', 'email', 'department_id'],
+      where: {id:employeeId}
+    });
+    
+    res.status(200).json({
+      message:'Empleado',
+      employee
+    });
+  } catch (error) {
+    next(new handleError('Error el empleado', "SERVER_ERR"));
+  }
+};
+
+
+const getEmployeesNames = async (req, res, next) => {
+  try {
+    const employeesNames = await Staff.findAll({
+      attributes:['id', 'firstname', 'lastname'],
+      where: {active:true}
+    });
+    
+    res.status(200).json({
+      message:'Lista de nombres de empleados',
+      employeesNames
+    });
+  } catch (error) {
+    next(new handleError('Error al obtener la lista nombres de empleados', "SERVER_ERR"));
+  }
+};
+
+
+const getEmployees = async (req, res, next) => {
   try {
     const page = normalizeQueryParams(req.query.page);
+    const departmentId = normalizeQueryParams(req.query.departmentId);
     const pageSize = 20;
 
-    const staff = await Staff.findAll({
+    const where = {active:true};
+
+    if(req.query.departmentId) {
+      where.department_id = departmentId
+    }
+
+    const employees = await Staff.findAll({
       attributes:['id', 'firstname', 'lastname', 'email', 'department_id'],
       limit:pageSize,
       offset: (page - 1) * pageSize,
-      where: { 
-        active:true,
-      }
+      where: where
     });
+    
     res.status(200).json({
       message:'Lista de empleados',
       nextPage:page+1,
       pageSize:pageSize,
-      employees:staff
-    });
-  } catch (error) {
-    next(new handleError('Error al obtener la lista empleados', "SERVER_ERR"));
-  }
-};
-
-const getByDepartment = async (req, res, next) => {
-  try {
-    const { departmentId } = req.params;
-
-    const staff = await Staff.findAll({
-      attributes:['id', 'firstname', 'lastname', 'email', 'department_id'],
-      where: { 
-        active:true,
-        department_id:departmentId
-      }
-    });
-    res.status(200).json({
-      message:'Lista de empleados por departamento',
-      employees:staff
+      employees:employees
     });
   } catch (error) {
     next(new handleError('Error al obtener la lista empleados', "SERVER_ERR"));
@@ -49,6 +70,7 @@ const getByDepartment = async (req, res, next) => {
 };
 
 module.exports = {
-  getAll,
-  getByDepartment
+  getEmployees,
+  getEmployeesNames,
+  getEmployeeById
 };

@@ -139,6 +139,60 @@ const equipmentsByDepartment = async (req, res, next) => {
     }
 }
 
+
+const equipmentsByEmployee = async (req, res, next) => {
+    try {
+        const { employeeId } = req.params;
+        const page =  normalizeQueryParams(req.query.page);
+        const pageSize = 10;
+
+        const equipments = await Equipment.findAll({
+            attributes: [
+                'id', 
+                'image', 
+                'own', 
+                'fixed_asset_type', 
+                'clasification', 
+                'brand', 
+                'model', 
+                'state', 
+                'folio', 
+                'quantity', 
+                'observations',
+                'createdAt'
+            ],
+            include: [
+                {
+                    model:Staff,
+                    attributes: ['id', 'firstname', 'lastname'],
+                    as: 'staff',
+                    where: {id:employeeId}
+                },
+                {
+                    model:EquipmentFeatures,
+                    attributes: ['id', 'description'],
+                    as: 'equipmentFeatures'
+                }
+            ],
+            limit: pageSize,
+            offset: (page - 1) * pageSize,
+            where: {
+                inventory_type:'employee',
+                active:true
+            }
+        });
+        
+        res.status(201).json({
+            message: 'Lista de equipos',
+            pageSize: pageSize,
+            nextPage: page+1,
+            equipments: equipments,
+        });
+    } catch (error) {
+        next(new handleError('Error al obtener los equipos', "SERVER_ERR"));
+    }
+}
+
 const addEquipment = async (req, res, next) => {
     try {
         const {
@@ -160,7 +214,20 @@ const addEquipment = async (req, res, next) => {
             image = req.file.filename;
         }
         const folio = await createFolio();
-        
+        console.log({
+            own,
+            fixedAssetType,
+            clasification,
+            brand,
+            model,
+            state,
+            departmentId,
+            quantity,
+            inCharge,
+            features,
+            observations,
+            inventoryType
+        })
         const result = await sequelizeConfig.transaction( async (transaction) => {
             const equipmentAdded = await Equipment.create(
                 {
@@ -175,7 +242,7 @@ const addEquipment = async (req, res, next) => {
                     quantity:quantity,
                     observations:observations,
                     department_id:departmentId,
-                    inventoryType:inventoryType
+                    inventory_type:inventoryType
                 },
                 {transaction}
             );
@@ -410,6 +477,7 @@ const inactiveEquipment = async (req, res, next) => {
 module.exports = {
     addEquipment,
     equipmentsByDepartment,
+    equipmentsByEmployee,
     edithEquipment,
     inactiveEquipment
 }

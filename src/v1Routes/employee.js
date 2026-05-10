@@ -7,14 +7,21 @@ router.get('/',
     auth,
     authorize(['operator','admin']),
     validateField('page'),
-    employeeController.getAll
+    validateField('departmentId', false),
+    employeeController.getEmployees
 );
 
-router.get('/by-department/:departmentId', 
+router.get('/names',
     auth,
     authorize(['operator','admin']),
-    validateField('departmentId'),
-    employeeController.getByDepartment
+    employeeController.getEmployeesNames
+);
+
+router.get('/:employeeId', 
+    auth,
+    authorize(['operator','admin']),
+    validateField('employeeId'),
+    employeeController.getEmployeeById
 );
 
 
