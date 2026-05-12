@@ -75,6 +75,9 @@ Equipment.hasOne(EquipmentHistory, {foreignKey: 'equipment_id', as:'equipmentHis
 EquipmentHistory.belongsTo(Equipment, {foreignKey: 'equipment_id', as:'equipment'});
 
 module.exports = {
+    Article,
+    ArticleEntryHistory,
+    ArticleOutputHistory,
     Camp,
     Staff,
     Department,

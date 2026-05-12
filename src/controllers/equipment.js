@@ -214,20 +214,6 @@ const addEquipment = async (req, res, next) => {
             image = req.file.filename;
         }
         const folio = await createFolio();
-        console.log({
-            own,
-            fixedAssetType,
-            clasification,
-            brand,
-            model,
-            state,
-            departmentId,
-            quantity,
-            inCharge,
-            features,
-            observations,
-            inventoryType
-        })
         const result = await sequelizeConfig.transaction( async (transaction) => {
             const equipmentAdded = await Equipment.create(
                 {

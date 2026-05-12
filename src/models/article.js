@@ -11,7 +11,7 @@ const Article = sequelizeConfig.define(
         },
         image: {
             type: DataTypes.STRING(50),
-            allowNull: false,
+            allowNull: true,
         },
         name: {
             type: DataTypes.STRING(50),
@@ -29,6 +29,10 @@ const Article = sequelizeConfig.define(
         unit: {
             type: DataTypes.ENUM('PIEZA','PAQUETE','CAJA','BLOCK','TIRAS'),
             defaultValue: 'PIEZA'
+        },
+        bill: {
+            type: DataTypes.STRING(10),
+            allowNull: false,
         },
         observations: {
             type: DataTypes.TEXT,

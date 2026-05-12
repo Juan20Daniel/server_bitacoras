@@ -34,8 +34,8 @@ const Equipment = sequelizeConfig.define(
             allowNull: false
         },
         state: {
-            type: DataTypes.ENUM('new', 'regular','good'),
-            defaultValue: 'new'
+            type: DataTypes.ENUM('Nuevo', 'Regular','Bueno'),
+            defaultValue: 'Nuevo'
         },
         folio: {
             type: DataTypes.STRING(10),

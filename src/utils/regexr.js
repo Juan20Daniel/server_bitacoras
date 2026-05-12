@@ -26,13 +26,13 @@ const regexr = {
     inputTankLavel:/^[A-Za-z0-9 íÍ/]{3,10}$/,
     initialDate: /^[0-9/]{10}$/,
     finalDate: /^[0-9/]{10}$/,
-    
     own: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
     fixedAssetType: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
+    articleName: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
     clasification: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ.,:/_ -]{3,40}$/,
     brand: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ.,:/_ -]{2,40}$/,
     model: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ.,:/_ -]{2,40}$/,
-    state: /^new|regular|good$/,
+    state: /^Nuevo|Regular|Bueno$/,
     departmentId: /^[0-9]{1,}$/,
     quantity: /^[0-9]{1,9}$/,
     inCharge:/^[0-9,]{1,}$/,
@@ -45,6 +45,8 @@ const regexr = {
     employeeId: /^[0-9]{1,}$/,
     equipmentId: /^[0-9]{1,}$/,
     removeImage: /^true|false$/,
+    bill: /^[0-9/]{5,10}$/,
+    unit: /^PIEZA|PAQUETE|CAJA|BLOCK|TIRAS$/,
 }
 
 module.exports = regexr;
