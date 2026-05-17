@@ -23,7 +23,15 @@ router.get('/by-employee/:employeeId',
     equipmentController.equipmentsByEmployee
 );
 
-router.post('/', 
+router.get('/search',
+    auth,
+    authorize(['operator','admin']),
+    validateField('searchBy'),
+    validateField('query'),
+    equipmentController.searchEquipment
+);
+
+router.post('/',
     auth,
     authorize(['operator','admin']),
     setUploadFolder('equipment'),
@@ -43,8 +51,7 @@ router.post('/',
     equipmentController.addEquipment
 );
 
-
-router.patch('/:equipmentId', 
+router.patch('/:equipmentId',
     auth,
     authorize(['operator','admin']),
     setUploadFolder('equipment'),

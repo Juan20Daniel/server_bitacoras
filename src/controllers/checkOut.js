@@ -4,7 +4,7 @@ const { Sequelize } = require('sequelize');
 const { getExpirationTime, timeUnix } = require('../utils/time');
 const { handleError } = require('../utils/error');
 const { getDayAndHour } = require('../utils/time');
-const { moveImg, removeImg } = require('../utils/file')
+const { moveImg, removeImg } = require('../utils/file');
 
 const getCheckOutById = async (id) => {
     const checkOuts = await CheckOut.findOne({

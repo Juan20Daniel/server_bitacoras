@@ -1,8 +1,9 @@
-const { Equipment, EquipmentFeatures, StaffEquipment, Staff, EquipmentHistory } = require('../models');
+const { Equipment, EquipmentFeatures, StaffEquipment, Staff, EquipmentHistory, Department } = require('../models');
 const { handleError } = require("../utils/error");
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { moveImg, removeImg } = require('../utils/file');
 const { normalizeQueryParams } = require('../utils/queryParams');
+const { Op } = require('sequelize');
 
 const normalizeNumFolio = (folio) => {
     let numFolio = folio.replace('E-','');
@@ -62,7 +63,8 @@ const getEquipmentById = async (id) => {
             'folio',
             'quantity',
             'observations',
-            'createdAt'
+            'createdAt',
+            'active',
         ],
         include: [
             {
@@ -74,6 +76,11 @@ const getEquipmentById = async (id) => {
                 model:EquipmentFeatures,
                 attributes: ['id', 'description'],
                 as: 'equipmentFeatures'
+            },
+            {
+                model:Department,
+                attributes: ['id','name', 'inventory_type', 'createdAt', 'camps_id', 'active'],
+                as:'department'
             }
         ],
         where:{
@@ -94,16 +101,16 @@ const equipmentsByDepartment = async (req, res, next) => {
 
         const equipments = await Equipment.findAll({
             attributes: [
-                'id', 
-                'image', 
-                'own', 
-                'fixed_asset_type', 
-                'clasification', 
-                'brand', 
-                'model', 
-                'state', 
-                'folio', 
-                'quantity', 
+                'id',
+                'image',
+                'own',
+                'fixed_asset_type',
+                'clasification',
+                'brand',
+                'model',
+                'state',
+                'folio',
+                'quantity',
                 'observations',
                 'createdAt'
             ],
@@ -117,6 +124,11 @@ const equipmentsByDepartment = async (req, res, next) => {
                     model:EquipmentFeatures,
                     attributes: ['id', 'description'],
                     as: 'equipmentFeatures'
+                },
+                {
+                    model:Department,
+                    attributes: ['id','name', 'inventory_type', 'createdAt', 'camps_id', 'active'],
+                    as:'department'
                 }
             ],
             limit: pageSize,
@@ -148,16 +160,16 @@ const equipmentsByEmployee = async (req, res, next) => {
 
         const equipments = await Equipment.findAll({
             attributes: [
-                'id', 
-                'image', 
-                'own', 
-                'fixed_asset_type', 
-                'clasification', 
-                'brand', 
-                'model', 
-                'state', 
-                'folio', 
-                'quantity', 
+                'id',
+                'image',
+                'own',
+                'fixed_asset_type',
+                'clasification',
+                'brand',
+                'model',
+                'state',
+                'folio',
+                'quantity',
                 'observations',
                 'createdAt'
             ],
@@ -172,6 +184,11 @@ const equipmentsByEmployee = async (req, res, next) => {
                     model:EquipmentFeatures,
                     attributes: ['id', 'description'],
                     as: 'equipmentFeatures'
+                },
+                {
+                    model:Department,
+                    attributes: ['id','name', 'inventory_type', 'createdAt', 'camps_id', 'active'],
+                    as:'department'
                 }
             ],
             limit: pageSize,
@@ -363,14 +380,17 @@ const edithEquipment = async (req, res, next) => {
             brand: req.body.brand??false,
             model: req.body.model??false,
             state: req.body.state??false,
-            quantity: req.body.quantity??false,
-            observations: req.body.observations??false
+            quantity: req.body.quantity??false
         }
         for(const field in data) {
             if(!data[field]) delete data[field];
         }
-       
+        
         const currentEquipment = await getEquipmentById(equipmentId);
+        
+        if('observations' in req.body && req.body.observations !== currentEquipment.observations) {
+            data.observations = req.body.observations === '' ? null : req.body.observations;
+        }
         
         if(!currentEquipment) {
             if(req.file) await removeImg(req.file.filename);
@@ -437,7 +457,6 @@ const edithEquipment = async (req, res, next) => {
             equipment:equipmentUpdated
         });
     } catch (error) {
-        console.log(error);
         if(req.file) await removeImg(req.file.filename);
         next(new handleError('Error al editar el equipo', "SERVER_ERR"));
     }
@@ -460,10 +479,77 @@ const inactiveEquipment = async (req, res, next) => {
     }
 }
 
+const searchEquipment = async (req, res, next) => {
+    try {
+        const { searchBy, query } = req.query;
+        const attributes = [
+            'id',
+            'image',
+            'own',
+            'fixed_asset_type',
+            'clasification',
+            'brand',
+            'model',
+            'state',
+            'folio',
+            'quantity',
+            'observations',
+            'createdAt',
+            'active',
+        ];
+        const include = [
+            {
+                model:Staff,
+                attributes: ['id', 'firstname', 'lastname'],
+                as:'staff'
+            },
+            {
+                model:EquipmentFeatures,
+                attributes: ['id', 'description'],
+                as: 'equipmentFeatures'
+            },
+            {
+                model:Department,
+                attributes: ['id','name', 'inventory_type', 'createdAt', 'camps_id', 'active'],
+                as:'department'
+            }
+        ]
+        if(searchBy==='folio') {
+            const equipment = await Equipment.findOne({
+                attributes: attributes,
+                include:include,
+                where:{folio:query}
+            });
+    
+            return res.status(200).json({
+                message:'Resultados de la busqueda de equipo por folio',
+                equipments:[equipment]
+            });
+        }
+
+        const equipments = await Equipment.findAll({
+            attributes:attributes,
+            include: include,
+            where:{fixed_asset_type: {
+                [Op.like]:`%${query}%`
+            }}
+        });
+
+        res.status(200).json({
+            message:'Resultados de la busqueda de equipo por nombre',
+            equipments:equipments??[]
+        });
+
+    } catch (error) {
+        next(new handleError('Error al buscar el equipo', "SERVER_ERR"));
+    }
+}
+
 module.exports = {
     addEquipment,
     equipmentsByDepartment,
     equipmentsByEmployee,
     edithEquipment,
-    inactiveEquipment
+    inactiveEquipment,
+    searchEquipment
 }

@@ -1,7 +1,7 @@
 const multer = require('multer');
 const path = require('path');
 const { handleError } = require('../utils/error');
-const {timeUnix} = require('../utils/time');
+const { timeUnix } = require('../utils/time');
 const { randomNum } = require('../utils/randomNum');
 
 const storage = multer.diskStorage({
@@ -23,7 +23,6 @@ const upload = multer({
     fileFilter: (req, file, cb) => {
         const allowed = ['image/jpeg', 'image/png'];
         if (allowed.includes(file.mimetype)) return cb(null, true);
-        
         cb(new handleError('Formato de imagen no permitido', 'VALIDATION_ERR'));
     }
 });

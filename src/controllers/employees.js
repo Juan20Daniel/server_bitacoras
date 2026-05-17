@@ -8,7 +8,14 @@ const getEmployeeById = async (req, res, next) => {
   try {
     const { employeeId } = req.params;
     const employee = await Staff.findOne({
-      attributes:['id', 'firstname', 'lastname', 'email', 'department_id'],
+      attributes:['id', 'firstname', 'lastname', 'email'],
+      include: [
+        {
+          model:Department,
+          attributes: ['id','name', 'inventory_type', 'createdAt', 'camps_id', 'active'],
+          as:'department'
+        }
+      ],
       where: {id:employeeId}
     });
     
@@ -52,7 +59,14 @@ const getEmployees = async (req, res, next) => {
     }
 
     const employees = await Staff.findAll({
-      attributes:['id', 'firstname', 'lastname', 'email', 'department_id'],
+      attributes:['id', 'firstname', 'lastname', 'email'],
+      include: [
+        {
+          model:Department,
+          attributes: ['id','name', 'inventory_type', 'createdAt', 'camps_id', 'active'],
+          as:'department'
+        }
+      ],
       limit:pageSize,
       offset: (page - 1) * pageSize,
       where: where

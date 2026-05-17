@@ -22,7 +22,7 @@ Department.belongsTo(Camp, {foreignKey:'camps_id', as:'camp'});
 
 //Relation between Department and User
 Department.hasMany(Staff, {foreignKey:'department_id', as: 'staff'});
-Staff.belongsTo(Department, {foreignKey:'department_id', as:'department' });
+Staff.belongsTo(Department, {foreignKey:'department_id', as:'department'});
 
 //Relation between User and CheckOut
 Staff.hasMany(CheckOut, {foreignKey: 'staff_id', as:'checkOut'});

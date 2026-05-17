@@ -27,7 +27,8 @@ const regexr = {
     initialDate: /^[0-9/]{10}$/,
     finalDate: /^[0-9/]{10}$/,
     own: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
-    fixedAssetType: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
+    fixedAssetType: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ$#@/=:;'\]\[?¿¡!()" \.,-\_]{3,50}$/,
+    equipmentName: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ$#@/=:;'\]\[?¿¡!()" \.,-\_]{3,50}$/,
     articleName: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ ]{3,50}$/,
     clasification: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ.,:/_ -]{3,40}$/,
     brand: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ.,:/_ -]{2,40}$/,
@@ -37,7 +38,7 @@ const regexr = {
     quantity: /^[0-9]{1,9}$/,
     inCharge:/^[0-9,]{1,}$/,
     features:/^[0-9.a-zA-ZáÁéÉíÍóÓúÚñÑ, '_-]{3,200}$/,
-    observations: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ ]{5,150}$/,
+    observations: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ$#@/=:;'\]\[?¿¡!()" \.,-\_]{5,150}$/,
     monthAndYear: /^[0-9/]{7}$/,
     inventoryType:/^department|employee$/,
     offset:/^[0-9]{1,}$/,
@@ -47,6 +48,9 @@ const regexr = {
     removeImage: /^true|false$/,
     bill: /^[0-9/]{5,10}$/,
     unit: /^PIEZA|PAQUETE|CAJA|BLOCK|TIRAS$/,
+    articleId: /^[0-9]{1,}$/,
+    query: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ$#@/=:;'\]\[?¿¡!()" \.,-\_]{1,50}$/,
+    searchBy: /^folio|code|name$/,
 }
 
 module.exports = regexr;

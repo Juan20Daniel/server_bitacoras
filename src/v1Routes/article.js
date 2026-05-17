@@ -16,14 +16,15 @@ router.get('/by-department/:departmentId',
     articleController.articlesByDepartment
 );
 
-// router.get('/by-employee/:employeeId',
-//     auth,
-//     authorize(['operator','admin']),
-//     validateField('employeeId'),
-//     articleController.equipmentsByEmployee
-// );
+router.get('/search',
+    auth,
+    authorize(['operator','admin']),
+    validateField('searchBy'),
+    validateField('query'),
+    articleController.searchArticle
+);
 
-router.post('/', 
+router.post('/',
     auth,
     authorize(['operator','admin']),
     setUploadFolder('articles'),
@@ -38,25 +39,19 @@ router.post('/',
 );
 
 
-// router.patch('/:equipmentId', 
-//     auth,
-//     authorize(['operator','admin']),
-//     setUploadFolder('equipment'),
-//     upload.single('image'),
-//     validateField('own', false),
-//     validateField('fixedAssetType', false),
-//     validateField('clasification', false),
-//     validateField('brand', false),
-//     validateField('model', false),
-//     validateField('state', false),
-//     validateField('quantity', false),
-//     validateField('inCharge', false),
-//     validateField('features', false),
-//     validateField('observations', false),
-//     validateField('equipmentId'),
-//     validateField('removeImage'),
-//     articleController.edithEquipment
-// );
+router.patch('/:articleId', 
+    auth,
+    authorize(['operator','admin']),
+    setUploadFolder('articles'),
+    upload.single('image'),
+    validateField('articleName', false),
+    validateField('unit', false),
+    validateField('quantity', false),
+    validateField('bill', false),
+    validateField('observations', false),
+    validateField('removeImage'),
+    articleController.edithArticle
+);
 
 router.delete('/:articleId',
     auth,

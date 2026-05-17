@@ -1,14 +1,16 @@
-const { Article, ArticleEntryHistory, ArticleOutputHistory } = require('../models');
+const { Article, ArticleEntryHistory, ArticleOutputHistory, Department } = require('../models');
 const { handleError } = require("../utils/error");
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { moveImg, removeImg } = require('../utils/file');
 const { normalizeQueryParams } = require('../utils/queryParams');
+const { Op } = require('sequelize');
 
 const createCode = async () => {
     const lastArticle = await Article.findOne({
         attributes:['code'],
         order:[['id', 'DESC']]
     });
+    
     if(!lastArticle) {
         return '1000';
     }
@@ -20,16 +22,29 @@ const createCode = async () => {
 const getArticleById = async (id) => {
     const equipment = await Article.findOne({
         attributes: [
-            'id', 
-            'image', 
-            'name', 
-            'quantity', 
-            'code', 
-            'unit', 
+            'id',
+            'image',
+            'name',
+            'quantity',
+            'code',
+            'unit',
             'observations',
             'createdAt',
             'bill',
-            'department_id'
+        ],
+        include: [
+            {
+                model:Department,
+                attributes: [
+                    'id',
+                    'name', 
+                    'inventory_type', 
+                    'createdAt', 
+                    'camps_id', 
+                    'active'
+                ],
+                as:'department'
+            }
         ],
         where:{
             id:id,
@@ -40,7 +55,6 @@ const getArticleById = async (id) => {
     return equipment;
 }
 
-
 const articlesByDepartment = async (req, res, next) => {
     try {
         const { departmentId } = req.params;
@@ -49,16 +63,29 @@ const articlesByDepartment = async (req, res, next) => {
 
         const articles = await Article.findAll({
             attributes: [
-                'id', 
-                'image', 
-                'name', 
-                'quantity', 
-                'code', 
-                'unit', 
+                'id',
+                'image',
+                'name',
+                'quantity',
+                'code',
+                'unit',
                 'observations',
                 'createdAt',
                 'bill',
-                'department_id'
+            ],
+            include: [
+                {
+                    model:Department,
+                    attributes: [
+                        'id',
+                        'name', 
+                        'inventory_type', 
+                        'createdAt', 
+                        'camps_id', 
+                        'active'
+                    ],
+                    as:'department'
+                }
             ],
             limit: pageSize,
             offset: (page - 1) * pageSize,
@@ -93,7 +120,7 @@ const addArticle = async (req, res, next) => {
         if(req.file) {
             image = req.file.filename;
         }
-        console.log(req.body);
+
         const code = await createCode();
        
         const data = {
@@ -142,11 +169,13 @@ const addArticle = async (req, res, next) => {
         next(new handleError('Error al agregar el equipo', "SERVER_ERR"));
     }
 }
-
+//Preguntar si cuando hace una entrada de material, la factura que se ingresa, se actualiza por la anterior
+//Preguntar si ciando hacen el registro de salida de material, que datos registran, solicitante, cantidad y observaciones ?
+//Preguntar si en el reporte de resguardo se incluye todo tanto lo del departamento y lo individual
 const registerArticleEntry = async (req, res, next) => {
     try {
         const { articleId } = req.params;
-        const { quantity } = req.body;
+        const { quantity, bill } = req.body;
 
         await ArticleEntryHistory.create({quantity, article_id:articleId});
 
@@ -175,7 +204,6 @@ const registerArticleOutput = async (req, res, next) => {
     }
 }
 
-
 const edithArticle = async (req, res, next) => {
     try {
         if(!req.body) {
@@ -183,29 +211,32 @@ const edithArticle = async (req, res, next) => {
                 message: 'No hay datos para editar.'
             });
         }
-        const { equipmentId } = req.params;
+        const { articleId } = req.params;
         const data = {
-            own: req.body.own??false,
-            fixed_asset_type: req.body.fixedAssetType??false,
-            clasification: req.body.clasification??false,
-            brand: req.body.brand??false,
-            model: req.body.model??false,
-            state: req.body.state??false,
+            name: req.body.articleName??false,
+            unit: req.body.unit??false,
             quantity: req.body.quantity??false,
-            observations: req.body.observations??false
+            bill: req.body.bill??false,
         }
+        
         for(const field in data) {
             if(!data[field]) delete data[field];
         }
-       
-        const currentEquipment = await getEquipmentById(equipmentId);
+
+        const currentArticle = await getArticleById(articleId);
         
-        if(!currentEquipment) {
-            if(req.file) await removeImg(req.file.filename);
-            next(new handleError('Equipo no encontrado.', "NOT_FOUND_ERR"));
+        if('observations' in req.body && req.body.observations !== currentArticle.observations) {
+            data.observations = req.body.observations === '' 
+                ? null 
+                : req.body.observations;
         }
-        if(currentEquipment.image && req.body.removeImage === 'true') {
-            await removeImg(currentEquipment.image, 'public/images/equipment/');
+
+        if(!currentArticle) {
+            if(req.file) await removeImg(req.file.filename);
+            next(new handleError('Material no encontrado.', "NOT_FOUND_ERR"));
+        }
+        if(currentArticle.image && req.body.removeImage === 'true') {
+            await removeImg(currentArticle.image, `public/images/${req.uploadFolder}/`);
         } 
         if(req.file) {
             data.image = req.file.filename;
@@ -213,29 +244,26 @@ const edithArticle = async (req, res, next) => {
         if(!req.file && req.body.removeImage === 'true') {
             data.image = null;
         } 
-        await sequelizeConfig.transaction(async (transaction) => {
+       
+        await Article.update(
+            data,
+            {where:{id:articleId}},
+        );
 
-            await Equipment.update(
-                data,
-                {where:{id:currentEquipment.id}},
-                {transaction}
-            );
-        });
-
+        const articleUpdated = await getArticleById(articleId);
+        
         if(req.file) {
             await moveImg(req.file, req.uploadFolder);
         }
 
-        const equipmentUpdated = await getEquipmentById(equipmentId);
-
         res.status(201).json({
-            message: 'Equipo editado.',
-            equipment:equipmentUpdated
+            message: 'Material editado.',
+            article: articleUpdated
         });
     } catch (error) {
         console.log(error);
         if(req.file) await removeImg(req.file.filename);
-        next(new handleError('Error al editar el equipo', "SERVER_ERR"));
+        next(new handleError('Error al editar el material', "SERVER_ERR"));
     }
 }
 
@@ -252,7 +280,69 @@ const inactiveArticle = async (req, res, next) => {
             message: 'Material inactivado',
         });
     } catch (error) {
+        
         next(new handleError('Error al inctivar el material', "SERVER_ERR"));
+    }
+}
+
+const searchArticle = async (req, res, next) => {
+    try {
+        const { searchBy, query } = req.query;
+        
+        const attributes = [
+            'id',
+            'image',
+            'name',
+            'quantity',
+            'code',
+            'unit',
+            'observations',
+            'createdAt',
+            'bill',
+        ];
+
+        const includes = [
+            {
+                model:Department,
+                attributes: [
+                    'id',
+                    'name', 
+                    'inventory_type', 
+                    'createdAt', 
+                    'camps_id', 
+                    'active'
+                ],
+                as:'department'
+            }
+        ]
+
+        if(searchBy==='code') {
+            const article = await Article.findOne({
+                attributes:attributes,
+                include:includes,
+                where:{code:query}
+            });
+    
+            return res.status(200).json({
+                message:'Resultados de la busqueda de material por código.',
+                articles:[article]
+            });
+        }
+
+        const articles = await Article.findAll({
+            attributes:attributes,
+            include:includes,
+            where:{name:{
+                [Op.like]:`%${query}%`
+            }}
+        });
+
+        res.status(200).json({
+            message:'Resultados de la busqueda de material por nombre',
+            articles:articles??[]
+        });
+    } catch (error) {
+        next(new handleError('Error al buscar el material.', "SERVER_ERR"));
     }
 }
 
@@ -262,5 +352,6 @@ module.exports = {
     registerArticleEntry,
     registerArticleOutput,
     edithArticle,
-    inactiveArticle
+    inactiveArticle,
+    searchArticle
 }
