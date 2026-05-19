@@ -24,6 +24,12 @@ router.get('/search',
     articleController.searchArticle
 );
 
+router.get('/status',
+    auth,
+    authorize(['operator','admin']),
+    articleController.statusArticle
+);
+
 router.post('/',
     auth,
     authorize(['operator','admin']),

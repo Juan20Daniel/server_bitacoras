@@ -1,4 +1,4 @@
-const { Equipment, EquipmentFeatures, StaffEquipment, Staff, EquipmentHistory, Department } = require('../models');
+const { Equipment, EquipmentFeatures, StaffEquipment, Staff, EquipmentHistory, Department, Camp } = require('../models');
 const { handleError } = require("../utils/error");
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { moveImg, removeImg } = require('../utils/file');
@@ -69,7 +69,7 @@ const getEquipmentById = async (id) => {
         include: [
             {
                 model:Staff,
-                attributes: ['id', 'firstname', 'lastname'],
+                attributes: ['id', 'firstname', 'lastname','email'],
                 as:'staff'
             },
             {
@@ -79,7 +79,14 @@ const getEquipmentById = async (id) => {
             },
             {
                 model:Department,
-                attributes: ['id','name', 'inventory_type', 'createdAt', 'camps_id', 'active'],
+                attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+                include: [
+                    {
+                        model:Camp,
+                        attributes:['id', 'city', 'school_type', 'active'],
+                        as:'camp'
+                    }
+                ],
                 as:'department'
             }
         ],
@@ -112,12 +119,13 @@ const equipmentsByDepartment = async (req, res, next) => {
                 'folio',
                 'quantity',
                 'observations',
-                'createdAt'
+                'createdAt',
+                'active',
             ],
             include: [
                 {
                     model:Staff,
-                    attributes: ['id', 'firstname', 'lastname'],
+                    attributes: ['id', 'firstname', 'lastname','email'],
                     as: 'staff'
                 },
                 {
@@ -127,7 +135,14 @@ const equipmentsByDepartment = async (req, res, next) => {
                 },
                 {
                     model:Department,
-                    attributes: ['id','name', 'inventory_type', 'createdAt', 'camps_id', 'active'],
+                    attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+                    include: [
+                        {
+                            model:Camp,
+                            attributes:['id', 'city', 'school_type', 'active'],
+                            as:'camp'
+                        }
+                    ],
                     as:'department'
                 }
             ],
@@ -176,7 +191,7 @@ const equipmentsByEmployee = async (req, res, next) => {
             include: [
                 {
                     model:Staff,
-                    attributes: ['id', 'firstname', 'lastname'],
+                    attributes: ['id', 'firstname', 'lastname','email'],
                     as: 'staff',
                     where: {id:employeeId}
                 },
@@ -187,7 +202,14 @@ const equipmentsByEmployee = async (req, res, next) => {
                 },
                 {
                     model:Department,
-                    attributes: ['id','name', 'inventory_type', 'createdAt', 'camps_id', 'active'],
+                    attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+                    include: [
+                        {
+                            model:Camp,
+                            attributes:['id', 'city', 'school_type', 'active'],
+                            as:'camp'
+                        }
+                    ],
                     as:'department'
                 }
             ],
@@ -500,7 +522,7 @@ const searchEquipment = async (req, res, next) => {
         const include = [
             {
                 model:Staff,
-                attributes: ['id', 'firstname', 'lastname'],
+                attributes: ['id', 'firstname', 'lastname','email'],
                 as:'staff'
             },
             {
@@ -510,7 +532,14 @@ const searchEquipment = async (req, res, next) => {
             },
             {
                 model:Department,
-                attributes: ['id','name', 'inventory_type', 'createdAt', 'camps_id', 'active'],
+                attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+                include: [
+                    {
+                        model:Camp,
+                        attributes:['id', 'city', 'school_type', 'active'],
+                        as:'camp'
+                    }
+                ],
                 as:'department'
             }
         ]

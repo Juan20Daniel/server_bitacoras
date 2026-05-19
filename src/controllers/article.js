@@ -1,4 +1,4 @@
-const { Article, ArticleEntryHistory, ArticleOutputHistory, Department } = require('../models');
+const { Article, ArticleEntryHistory, ArticleOutputHistory, Department, Camp } = require('../models');
 const { handleError } = require("../utils/error");
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { moveImg, removeImg } = require('../utils/file');
@@ -31,6 +31,7 @@ const getArticleById = async (id) => {
             'observations',
             'createdAt',
             'bill',
+            'active'
         ],
         include: [
             {
@@ -40,8 +41,14 @@ const getArticleById = async (id) => {
                     'name', 
                     'inventory_type', 
                     'createdAt', 
-                    'camps_id', 
                     'active'
+                ],
+                include: [
+                    {
+                        model:Camp,
+                        attributes:['id', 'city', 'school_type', 'active'],
+                        as:'camp'
+                    }
                 ],
                 as:'department'
             }
@@ -72,6 +79,7 @@ const articlesByDepartment = async (req, res, next) => {
                 'observations',
                 'createdAt',
                 'bill',
+                'active'
             ],
             include: [
                 {
@@ -80,9 +88,15 @@ const articlesByDepartment = async (req, res, next) => {
                         'id',
                         'name', 
                         'inventory_type', 
-                        'createdAt', 
-                        'camps_id', 
+                        'createdAt',  
                         'active'
+                    ],
+                    include: [
+                        {
+                            model:Camp,
+                            attributes:['id', 'city', 'school_type', 'active'],
+                            as:'camp'
+                        }
                     ],
                     as:'department'
                 }
@@ -103,6 +117,23 @@ const articlesByDepartment = async (req, res, next) => {
         });
     } catch (error) {
         next(new handleError('Error al obtener los materiales', "SERVER_ERR"));
+    }
+}
+
+const statusArticle = async (req, res, next) => {
+    try {
+        const totalArticles = await Article.count();
+        const withoutStock = await Article.count({where:{quantity:0}});
+
+        res.status(200).json({
+            message: 'Status de material',
+            status: {
+                totalArticles: totalArticles,
+                withoutStock: withoutStock
+            }
+        });
+    } catch (error) {
+        next(new handleError('Error al obtener el estatus de los materiales', "SERVER_ERR"));
     }
 }
 
@@ -299,6 +330,7 @@ const searchArticle = async (req, res, next) => {
             'observations',
             'createdAt',
             'bill',
+            'active'
         ];
 
         const includes = [
@@ -309,8 +341,14 @@ const searchArticle = async (req, res, next) => {
                     'name', 
                     'inventory_type', 
                     'createdAt', 
-                    'camps_id', 
-                    'active'
+                    'active',
+                ],
+                include: [
+                    {
+                        model:Camp,
+                        attributes:['id', 'city', 'school_type', 'active'],
+                        as:'camp'
+                    }
                 ],
                 as:'department'
             }
@@ -349,6 +387,7 @@ const searchArticle = async (req, res, next) => {
 module.exports = {
     addArticle,
     articlesByDepartment,
+    statusArticle,
     registerArticleEntry,
     registerArticleOutput,
     edithArticle,
