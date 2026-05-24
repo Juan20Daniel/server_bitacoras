@@ -24,5 +24,15 @@ router.get('/:employeeId',
     employeeController.getEmployeeById
 );
 
+router.get('/history/:employeeId',
+    auth,
+    authorize(['operator','admin']),
+    validateField('employeeId'),
+    validateField('page'),
+    validateField('initialDate', false),
+    validateField('finalDate', false),
+    employeeController.getEmployeeHistory
+);
+
 
 module.exports = router;

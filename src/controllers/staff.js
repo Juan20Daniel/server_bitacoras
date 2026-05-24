@@ -3,6 +3,21 @@ const { Staff, Department } = require('../models');
 const { encryptPassword } = require('../utils/password');
 const { handleError } = require('../utils/error');
 
+const getById = async (staffId) => {
+  try {
+    const staff = await Staff.findOne({
+      attributes: ['id', 'firstname', 'lastname','email', 'active', 'role', 'folio'],
+      where: { 
+        id:staffId
+      }
+    });
+    return staff
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 const getAll = async (req, res, next) => {
   try {
     const staff = await Staff.findAll({
@@ -56,16 +71,22 @@ const post = async (req, res, next) => {
       email,
       password
     } = req.body;
+    
+    let department = await Department.findOne({
+      where: {
+        camps_id: campId,
+        name: deparmentName
+      }
+    });
+
+    const lastStaffFolio = await Staff.findOne({
+      attributes:['folio'],
+      order:[['id', 'DESC']]
+    });
+
+    const folio = Number(lastStaffFolio.folio)+1;
    
-    await sequelizeConfig.transaction(async (transaction) => {
-      let department = null;
-      department = await Department.findOne({
-        where: {
-          camps_id:campId,
-          name:deparmentName
-        }
-      });
-      
+    const result = await sequelizeConfig.transaction(async (transaction) => {
       if(!department) {
         department = await Department.create(
           {
@@ -78,18 +99,23 @@ const post = async (req, res, next) => {
 
       const passwordEncrypted = password !== '' ? encryptPassword(password) : null;
 
-      await Staff.create(
+      const staff = await Staff.create(
         {
           firstname:firstname,
           lastname:lastname,
           email:email,
           password:passwordEncrypted,
-          department_id:department.id
+          department_id:department.id,
+          folio:folio.toString()
         },
         {transaction}
       );
+      return staff;
     });
-    res.status(201).json({message:'Usuario creado'});
+
+    const staff = await getById(result.id)
+
+    res.status(201).json({message:'Usuario creado.', staff});
   } catch (error) {
     next(new handleError('Error al crear el usuario', "SERVER_ERR"));
   }

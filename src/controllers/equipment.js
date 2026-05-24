@@ -30,15 +30,15 @@ const normalizeInCharge = (inCharge, equipmentID) => {
 }
 
 const createFolio = async () => {
-    const lastEquipment = await Equipment.findOne({
+    const lastEquipmentFolio = await Equipment.findOne({
         attributes:['folio'],
         order:[['id', 'DESC']]
     });
-    if(!lastEquipment) {
+    if(!lastEquipmentFolio) {
         return 'E-001';
     }
     
-    const numfolio = normalizeNumFolio(lastEquipment.folio)+1;
+    const numfolio = normalizeNumFolio(lastEquipmentFolio.folio)+1;
 
     if(numfolio <= 9) {
         return `E-00${numfolio}`;
@@ -175,7 +175,7 @@ const equipmentsByEmployee = async (req, res, next) => {
 
         const equipments = await Equipment.findAll({
             attributes: [
-                'id',
+                  'id',
                 'image',
                 'own',
                 'fixed_asset_type',
@@ -186,7 +186,8 @@ const equipmentsByEmployee = async (req, res, next) => {
                 'folio',
                 'quantity',
                 'observations',
-                'createdAt'
+                'createdAt',
+                'active',
             ],
             include: [
                 {

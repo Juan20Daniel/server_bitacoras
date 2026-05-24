@@ -1,5 +1,8 @@
-const { Camp, Department, Equipment, Staff, EquipmentFeatures } = require('../models');
+const { Op } = require('sequelize');
+const { Camp, Department, Equipment, Staff, EquipmentFeatures, EquipmentHistory } = require('../models');
 const { handleError } = require('../utils/error');
+const { normalizeQueryParams } = require('../utils/queryParams');
+const { fromStringDateToUnixDate, fromUnixDateToDateFormat } = require('../utils/time');
 
 const getDepartmentByCampus = async (req, res, next) => {
     try {
@@ -9,12 +12,12 @@ const getDepartmentByCampus = async (req, res, next) => {
             where.camps_id = campId;
         }
         const deparments = await Department.findAll({
-            attributes:['id','name'],
+            attributes: ['id','name'],
             include: [
                 {
-                    model:Camp,
+                    model: Camp,
                     as:'camp',
-                    attributes:['id', 'city', 'school_type']
+                    attributes: ['id', 'city', 'school_type']
                 }
             ],
             where
@@ -32,7 +35,7 @@ const getDepartmentById = async (req, res, next) => {
         const { departmentId } = req.params;
        
         const deparment = await Department.findOne({
-            attributes:['id','name','inventory_type'],
+            attributes: ['id','name','inventory_type'],
             include: [
                 {
                     model:Camp,
@@ -53,9 +56,39 @@ const getDepartmentById = async (req, res, next) => {
 const getDepartmentHistory = async (req, res, next) => {
     try {
         const { departmentId } = req.params;
+        const page = normalizeQueryParams(req.query.page);
+        const initialDate = req.query.initialDate;
+        const finalDate = req.query.finalDate;
 
-        const result = await Equipment.findAll({
-            attributes:[
+        
+        if((initialDate && !finalDate) || (!initialDate && finalDate)) {
+            return next(new handleError('Rango de fechas invalido', "VALIDATION_ERR"));
+        }
+
+        const where = {
+            department_id:departmentId,
+            inventory_type: "department"
+        };
+
+        if(initialDate && finalDate) {
+            const initialUnixDate = fromStringDateToUnixDate(initialDate);
+            const finalUnixDate = fromStringDateToUnixDate(finalDate);
+
+            if(initialUnixDate > finalUnixDate) {
+                return next(new handleError("Rango de fecha invalido", "RANGE_ERR"));
+            }
+           
+            where.createdAt = {
+                [Op.between]:[
+                    fromUnixDateToDateFormat(initialUnixDate),
+                    fromUnixDateToDateFormat(finalUnixDate)
+                ]
+            }
+        }
+        
+        const pageSize = 20;
+        const equipments = await Equipment.findAll({
+            attributes: [
                 'id',
                 'image',
                 'own',
@@ -67,25 +100,55 @@ const getDepartmentHistory = async (req, res, next) => {
                 'folio',
                 'quantity',
                 'observations',
-                'createdAt'
+                'createdAt',
+                'active'
             ],
             include: [
                 {
+                    model:EquipmentHistory,
+                    attributes: [
+                        'id',
+                        'createdAt',
+                    ],
+                    as: 'equipmentHistory',
+                },
+                {
                     model:Staff,
-                    attributes: ['id', 'firstname', 'lastname'],
+                    attributes: ['id', 'firstname', 'lastname','email', 'active', 'role', 'folio'],
                     as:'staff'
                 },
                 {
                     model:EquipmentFeatures,
                     attributes: ['id', 'description'],
                     as: 'equipmentFeatures'
+                },
+                {
+                    model:Department,
+                    attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+                    include: [
+                        {
+                            model:Camp,
+                            attributes:['id', 'city', 'school_type', 'active'],
+                            as:'camp'
+                        }
+                    ],
+                    as:'department',
                 }
             ],
-            where:{
-                department_id:departmentId
-            }
-        })
+            order: [['id', 'DESC']],
+            limit: pageSize,
+            offset: (page - 1) * pageSize,
+            where: where,
+        });
+
+        res.status(200).json({
+            message: 'Historial del departamento',
+            pageSize: pageSize,
+            nextPage: page+1,
+            equipments: equipments
+        });
     } catch (error) {
+        console.log(error);
         next(new handleError('Error al obtener el historial del departamento', "SERVER_ERR"));
     }
 }
@@ -100,6 +163,7 @@ const createDepartment = (req, res, next) => {
 
 module.exports = {
     getDepartmentByCampus,
+    getDepartmentHistory,
     getDepartmentById,
     createDepartment
 }

@@ -122,8 +122,17 @@ const articlesByDepartment = async (req, res, next) => {
 
 const statusArticle = async (req, res, next) => {
     try {
-        const totalArticles = await Article.count();
-        const withoutStock = await Article.count({where:{quantity:0}});
+        const totalArticles = await Article.count({
+            where:{
+                active:true
+            }
+        });
+        const withoutStock = await Article.count({
+            where:{
+                quantity:0,
+                active:true
+            }
+        });
 
         res.status(200).json({
             message: 'Status de material',
@@ -200,9 +209,7 @@ const addArticle = async (req, res, next) => {
         next(new handleError('Error al agregar el equipo', "SERVER_ERR"));
     }
 }
-//Preguntar si cuando hace una entrada de material, la factura que se ingresa, se actualiza por la anterior
-//Preguntar si ciando hacen el registro de salida de material, que datos registran, solicitante, cantidad y observaciones ?
-//Preguntar si en el reporte de resguardo se incluye todo tanto lo del departamento y lo individual
+
 const registerArticleEntry = async (req, res, next) => {
     try {
         const { articleId } = req.params;

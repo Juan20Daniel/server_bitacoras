@@ -1,8 +1,10 @@
+const { Op } = require('sequelize');
 const { sequelizeConfig } = require('../database/sequelizeConfig');
-const { Staff, Department } = require('../models');
+const { Staff, Department, EquipmentFeatures, EquipmentHistory, Equipment, Camp } = require('../models');
 const { handleError } = require('../utils/error');
 const { encryptPassword } = require('../utils/password');
 const { normalizeQueryParams } = require('../utils/queryParams');
+const { fromStringDateToUnixDate, fromUnixDateToDateFormat } = require('../utils/time');
 
 const getEmployeeById = async (req, res, next) => {
   try {
@@ -83,8 +85,117 @@ const getEmployees = async (req, res, next) => {
   }
 };
 
+
+const getEmployeeHistory = async (req, res, next) => {
+  try {
+    const { employeeId } = req.params;
+    const page = normalizeQueryParams(req.query.page);
+    const initialDate = req.query.initialDate;
+    const finalDate = req.query.finalDate;
+
+    if((initialDate && !finalDate) || (!initialDate && finalDate)) {
+      return next(new handleError('Rango de fechas invalido', "VALIDATION_ERR"));
+    }
+
+    const where = {
+      inventory_type: "employee"
+    };
+
+    if(initialDate && finalDate) {
+      const initialUnixDate = fromStringDateToUnixDate(initialDate);
+      const finalUnixDate = fromStringDateToUnixDate(finalDate);
+
+      if(initialUnixDate > finalUnixDate) {
+        return next(new handleError("Rango de fecha invalido", "RANGE_ERR"));
+      }
+        
+      where.createdAt = {
+        [Op.between]:[
+          fromUnixDateToDateFormat(initialUnixDate),
+          fromUnixDateToDateFormat(finalUnixDate)
+        ]
+      }
+    }
+      
+    const pageSize = 20;
+    const equipments = await Equipment.findAll({
+      attributes: [
+        'id',
+        'image',
+        'own',
+        'fixed_asset_type',
+        'clasification',
+        'brand',
+        'model',
+        'state',
+        'folio',
+        'quantity',
+        'observations',
+        'createdAt',
+        'active'
+      ],
+      include: [
+        {
+          model:EquipmentHistory,
+          attributes: [
+            'id',
+            'createdAt',
+          ],
+          as: 'equipmentHistory',
+          required: true
+        },
+        {
+          model:Staff,
+          attributes: ['id', 'firstname', 'lastname','email'],
+          as:'staff',
+          through: {
+            attributes: []
+          },
+          where: {
+            id: employeeId
+          },
+          required: true
+        },
+        {
+          model:EquipmentFeatures,
+          attributes: ['id', 'description'],
+          as: 'equipmentFeatures'
+        },
+        {
+          model:Department,
+          attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+          include: [
+            {
+              model:Camp,
+              attributes:['id', 'city', 'school_type', 'active'],
+              as:'camp'
+            }
+          ],
+          as:'department',
+        }
+      ],
+        order: [['id', 'DESC']],
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
+        where: where,
+      });
+
+    res.status(200).json({
+      message: 'Historial del empleado',
+      pageSize: pageSize,
+      nextPage: page+1,
+      equipments: equipments
+    });
+  } catch (error) {
+    console.log(error);
+    next(new handleError('Error al obtener el historial del empleado', "SERVER_ERR"));
+  }
+}
+
+
 module.exports = {
   getEmployees,
   getEmployeesNames,
-  getEmployeeById
+  getEmployeeById,
+  getEmployeeHistory
 };

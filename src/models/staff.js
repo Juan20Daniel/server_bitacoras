@@ -34,6 +34,10 @@ const Staff = sequelizeConfig.define(
         role: {
             type: DataTypes.ENUM('basic','rrhh','operator','admin'),
             defaultValue: 'basic',
+        },
+        folio: {
+            type: DataTypes.STRING,
+            allowNull: true,
         }
     },
     {
