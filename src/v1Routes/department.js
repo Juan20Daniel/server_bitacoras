@@ -26,5 +26,12 @@ router.get('/history/:departmentId',
     departmentController.getDepartmentHistory
 );
 
+router.get('/assetCustodyForm/:departmentId/:employeeId',
+    auth,
+    authorize(['operator','admin']),
+    validateField('departmentId'),  
+    validateField('employeeId'),    
+    departmentController.getAssetCustodyForm
+);
 
 module.exports = router;

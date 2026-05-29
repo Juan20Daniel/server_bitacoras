@@ -5,9 +5,19 @@ const { moveImg, removeImg } = require('../utils/file');
 const get = async (req, res, next) => {
     try {
         const vehices = await Vehicle.findAll({
-            attributes:['id', 'name', 'image']
+            attributes: [
+                'id',
+                'name',
+                'image',
+                'init_mileage',
+                'init_tank_lavel',
+                'active'
+            ]
         });
-        res.status(200).json({message:'Vehiculos', vehiclesList:vehices});
+        res.status(200).json({
+            message:'Vehiculos', 
+            vehiclesList: vehices
+        });
     } catch (error) {
         next(new handleError('Error al crear el usuario', "SERVER_ERR"));
     }
@@ -57,8 +67,8 @@ const vehicularActivity = async (req, res, next) => {
         });
 
         const formatData = getVehicularActivity.map((activity, index) => ({
-            id:index,
-            staffName:`${activity.staff.firstname} ${activity.staff.lastname}`,
+            id: index,
+            staffName: `${activity.staff.firstname} ${activity.staff.lastname}`,
             destination: activity.checkOutVehicular.destination,
             vehicleName: activity.checkOutVehicular.vehicle.name,
             vehicleImage: activity.checkOutVehicular.vehicle.image

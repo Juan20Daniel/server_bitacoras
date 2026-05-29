@@ -44,6 +44,7 @@ const server = async () => {
       console.log(`THE SERVER IS RUNNING ON PORT ${port}`);
     });
   } catch (error) {
+  
     console.log(error);
     process.exit(1);
   }

@@ -6,7 +6,7 @@ const { auth, authorize, validateField } = require('../middlewares');
 router.get('/', 
     auth,
     authorize(['operator','admin']),
-    validateField('page'),
+    validateField('page', false),
     validateField('departmentId', false),
     employeeController.getEmployees
 );
@@ -34,5 +34,11 @@ router.get('/history/:employeeId',
     employeeController.getEmployeeHistory
 );
 
+router.get('/assetCustodyForm/:employeeId',
+    auth,
+    authorize(['operator','admin']),
+    validateField('employeeId'),
+    employeeController.getAssetCustodyForm
+);
 
 module.exports = router;

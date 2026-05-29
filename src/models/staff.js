@@ -38,6 +38,10 @@ const Staff = sequelizeConfig.define(
         folio: {
             type: DataTypes.STRING,
             allowNull: true,
+        },
+        title: {
+            type: DataTypes.STRING(10),
+            allowNull: true,
         }
     },
     {

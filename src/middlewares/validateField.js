@@ -14,6 +14,7 @@ const searchField = (req, key) => {
 
 const validateField = (field, required=true) => {
     return (req, res, next) => {
+        
         const searchResult = searchField(req, field);
         if(!required && !searchResult) return next();
         if(!searchResult) {

@@ -7,7 +7,7 @@ const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
         const staff = await Staff.findOne({
-            attributes:['id', 'firstname', 'lastname', 'password','active', 'role'],
+            attributes:['id', 'firstname','lastname','email','active', 'role', 'folio','password'],
             where: {
                 email:email
             },
@@ -15,6 +15,7 @@ const login = async (req, res, next) => {
         });
         
         if(!staff) return next(new handleError("No encontrado", "NOT_FOUND_ERR"));
+
         if(!comparePasswords(password, staff.password)) return next( new handleError("No autorizado", "AUTH_ERR"));
         if(!staff.active) return next(new handleError("Cuenta inactiva", "ACCESS_ERR"));
 
@@ -36,6 +37,7 @@ const login = async (req, res, next) => {
             user:staffData
         });
     } catch (error) {
+        console.log(error);
         next(new handleError('Error al iniciar sesión', "SERVER_ERR"));
     }
 }

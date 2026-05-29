@@ -69,7 +69,16 @@ const getEquipmentById = async (id) => {
         include: [
             {
                 model:Staff,
-                attributes: ['id', 'firstname', 'lastname','email'],
+                attributes: [
+                    'id', 
+                    'firstname', 
+                    'lastname',
+                    'email', 
+                    'active', 
+                    'role', 
+                    'folio',
+                    'title'
+                ],
                 as:'staff'
             },
             {
@@ -125,7 +134,16 @@ const equipmentsByDepartment = async (req, res, next) => {
             include: [
                 {
                     model:Staff,
-                    attributes: ['id', 'firstname', 'lastname','email'],
+                    attributes: [
+                        'id', 
+                        'firstname', 
+                        'lastname',
+                        'email', 
+                        'active', 
+                        'role', 
+                        'folio',
+                        'title'
+                    ],
                     as: 'staff'
                 },
                 {
@@ -192,7 +210,7 @@ const equipmentsByEmployee = async (req, res, next) => {
             include: [
                 {
                     model:Staff,
-                    attributes: ['id', 'firstname', 'lastname','email'],
+                    attributes: ['id', 'firstname', 'lastname','email', 'active', 'role', 'folio'],
                     as: 'staff',
                     where: {id:employeeId}
                 },
@@ -432,8 +450,10 @@ const edithEquipment = async (req, res, next) => {
 
             await Equipment.update(
                 data,
-                {where:{id:currentEquipment.id}},
-                {transaction}
+                {
+                    where:{id:currentEquipment.id},
+                    transaction
+                }
             );
 
             const {newInCharges, inChargesToRemove} = processUpdateInCharges(req.body.inCharge, currentEquipment);
@@ -523,7 +543,16 @@ const searchEquipment = async (req, res, next) => {
         const include = [
             {
                 model:Staff,
-                attributes: ['id', 'firstname', 'lastname','email'],
+                attributes: [
+                    'id', 
+                    'firstname', 
+                    'lastname',
+                    'email', 
+                    'active',
+                    'role',
+                    'folio',
+                    'title'
+                ],
                 as:'staff'
             },
             {

@@ -45,6 +45,8 @@ router.post('/vehicular',
     validateField('reason'),
     validateField('status'),
     validateField('staffId'),
+    validateField('departureKm'),
+    validateField('outputTankLavel'),
     validateField('vehicleId'),
     validateField('destination'),
     usersController.createVehicularCheckOut
@@ -66,11 +68,13 @@ router.patch('/vehicular/:checkOutId',
     usersController.updateCheckOutVehicular
 );
 
-router.patch('/registerExitHour/:checkOutId/:type',
+router.patch('/registerExitHour/:checkOutId',
     auth,
     authorize(['basic','rrhh','operator','admin']),
-    validateField('checkOutId'),
-    validateField('type'),
+    validateField('vehicleId'),
+    validateField('checkOutType'),
+    validateField('departureKm'),
+    validateField('inputTankLavel'),
     usersController.registerExitHour
 );
 

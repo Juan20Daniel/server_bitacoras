@@ -114,7 +114,16 @@ const getDepartmentHistory = async (req, res, next) => {
                 },
                 {
                     model:Staff,
-                    attributes: ['id', 'firstname', 'lastname','email', 'active', 'role', 'folio'],
+                    attributes: [
+                        'id', 
+                        'firstname', 
+                        'lastname',
+                        'email', 
+                        'active', 
+                        'role', 
+                        'folio',
+                        'title'
+                    ],
                     as:'staff'
                 },
                 {
@@ -153,6 +162,90 @@ const getDepartmentHistory = async (req, res, next) => {
     }
 }
 
+const getAssetCustodyForm = async (req, res, next) => {
+    try {
+        const { departmentId, employeeId } = req.params;
+
+        const equipments = await Equipment.findAll({
+            attributes: [
+                'id',
+                'image',
+                'own',
+                'fixed_asset_type',
+                'clasification',
+                'brand',
+                'model',
+                'state',
+                'folio',
+                'quantity',
+                'observations',
+                'createdAt',
+                'active',
+            ],
+            include: [
+                {
+                    model: Staff,
+                    as: 'staffFilter',
+                    attributes: [],
+                    through: {
+                        attributes: []
+                    },
+                    where: {id:employeeId},
+                    required: true
+                },
+                {
+                    model: Staff,
+                    attributes: [
+                        'id',
+                        'firstname',
+                        'lastname',
+                        'email',
+                        'active',
+                        'role', 
+                        'folio',
+                        'title',
+                    ],
+                    through: {
+                        attributes:[]
+                    },
+                    as: 'staff',
+                },
+                {
+                    model:EquipmentFeatures,
+                    attributes: ['id', 'description'],
+                    as: 'equipmentFeatures'
+                },
+                {
+                    model:Department,
+                    attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+                    include: [
+                        {
+                        model:Camp,
+                        attributes:['id', 'city', 'school_type', 'active'],
+                        as:'camp'
+                        }
+                    ],
+                    as:'department'
+                }
+            ],
+            where: {
+                inventory_type: 'department',
+                department_id: departmentId,
+                active: true
+            }
+        });
+    
+        res.status(201).json({
+            message: 'Lista de equipos',
+            equipments: equipments,
+        });
+    } catch (error) {
+        next(new handleError('Error al obtener los equipos', "SERVER_ERR"));
+    }
+}
+
+
+
 const createDepartment = (req, res, next) => {
     try {
         
@@ -165,5 +258,6 @@ module.exports = {
     getDepartmentByCampus,
     getDepartmentHistory,
     getDepartmentById,
+    getAssetCustodyForm,
     createDepartment
 }

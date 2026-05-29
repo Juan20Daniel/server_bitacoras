@@ -38,9 +38,9 @@ const getArticleById = async (id) => {
                 model:Department,
                 attributes: [
                     'id',
-                    'name', 
-                    'inventory_type', 
-                    'createdAt', 
+                    'name',
+                    'inventory_type',
+                    'createdAt',
                     'active'
                 ],
                 include: [

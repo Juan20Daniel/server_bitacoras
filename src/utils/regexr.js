@@ -13,7 +13,7 @@ const regexr = {
     password: /^.{1,100}$/,
     vehicle: /^[A-Za-z0-9áÁéÉíÍóÓúÚñÑ\- ]{10,35}$/,
     destination: /^[A-Za-z0-9áÁéÉíÍóÓúÚñÑ\s ]{4,50}$/,
-    outletTankLavel: /^[A-Za-z0-9 íÍ/]{3,10}$/,
+    outputTankLavel: /^[A-Za-z0-9 íÍ/]{3,10}$/,
     reason: /^[A-Za-z0-9áÁéÉíÍóÓúÚñÑ\s. ]{4,50}$/,
     vehicleName: /^[A-Za-z0-9áÁéÉíÍóÓúÚñÑ ]{3,40}$/,
     initMileage:/^[0-9]{1,6}$/,
@@ -22,6 +22,7 @@ const regexr = {
     id: /^[0-9]{1,}$/,
     deparmentId: /^[0-9]{1,}$/,
     checkOutId: /^[0-9]{1,}$/,
+    departureKm: /^[0-9]{1,6}$/,
     arrivalKm:/^[0-9]{1,6}$/,
     inputTankLavel:/^[A-Za-z0-9 íÍ/]{3,10}$/,
     initialDate: /^[0-9/]{10}$/,
@@ -51,6 +52,8 @@ const regexr = {
     articleId: /^[0-9]{1,}$/,
     query: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ$#@/=:;'\]\[?¿¡!()" \.,-\_]{1,50}$/,
     searchBy: /^folio|code|name$/,
+
+    title:/^[a-zA-Z\.]{3,10}$/,
 }
 
 module.exports = regexr;

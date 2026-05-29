@@ -10,12 +10,28 @@ const getEmployeeById = async (req, res, next) => {
   try {
     const { employeeId } = req.params;
     const employee = await Staff.findOne({
-      attributes:['id', 'firstname', 'lastname', 'email'],
+      attributes:[
+        'id', 
+        'firstname', 
+        'lastname',
+        'email', 
+        'active', 
+        'role', 
+        'folio',
+        'title'
+      ],
       include: [
         {
           model:Department,
-          attributes: ['id','name', 'inventory_type', 'createdAt', 'camps_id', 'active'],
-          as:'department'
+          attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+          include: [
+            {
+              model:Camp,
+              attributes:['id', 'city', 'school_type', 'active'],
+              as:'camp'
+            }
+          ],
+          as:'department',
         }
       ],
       where: {id:employeeId}
@@ -57,27 +73,55 @@ const getEmployees = async (req, res, next) => {
     const where = {active:true};
 
     if(req.query.departmentId) {
-      where.department_id = departmentId
+      where.department_id = departmentId;
     }
 
+    const pagination = req.query.page
+      ? {
+          limit: pageSize,
+          offset: (page - 1) * pageSize,
+        }
+      : {}
+
     const employees = await Staff.findAll({
-      attributes:['id', 'firstname', 'lastname', 'email'],
+      attributes:[
+        'id',
+        'firstname',
+        'lastname',
+        'email',
+        'active',
+        'role',
+        'folio',
+        'title'
+      ],
       include: [
         {
           model:Department,
-          attributes: ['id','name', 'inventory_type', 'createdAt', 'camps_id', 'active'],
-          as:'department'
+          attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+          include: [
+            {
+              model:Camp,
+              attributes:['id', 'city', 'school_type', 'active'],
+              as:'camp'
+            }
+          ],
+          as:'department',
         }
       ],
-      limit:pageSize,
-      offset: (page - 1) * pageSize,
-      where: where
+      where: where,
+      ...pagination,
     });
+
+    const paginationDetails = req.query.page
+      ? {
+          nextPage:page+1,
+          pageSize:pageSize,
+        }
+      : {}
     
     res.status(200).json({
       message:'Lista de empleados',
-      nextPage:page+1,
-      pageSize:pageSize,
+      ...paginationDetails,
       employees:employees
     });
   } catch (error) {
@@ -146,7 +190,16 @@ const getEmployeeHistory = async (req, res, next) => {
         },
         {
           model:Staff,
-          attributes: ['id', 'firstname', 'lastname','email'],
+          attributes: [
+            'id', 
+            'firstname', 
+            'lastname',
+            'email', 
+            'active', 
+            'role', 
+            'folio',
+            'title'
+          ],
           as:'staff',
           through: {
             attributes: []
@@ -192,10 +245,81 @@ const getEmployeeHistory = async (req, res, next) => {
   }
 }
 
+const getAssetCustodyForm = async (req, res, next) => {
+  try {
+    const { employeeId } = req.params;
+    
+    const equipments = await Equipment.findAll({
+      attributes: [
+        'id',
+        'image',
+        'own',
+        'fixed_asset_type',
+        'clasification',
+        'brand',
+        'model',
+        'state',
+        'folio',
+        'quantity',
+        'observations',
+        'createdAt',
+        'active',
+      ],
+      include: [
+        {
+          model:Staff,
+          attributes: [
+            'id',
+            'firstname',
+            'lastname',
+            'email',
+            'active',
+            'role', 
+            'folio',
+            'title',
+          ],
+          as: 'staff',
+          where: {id:employeeId}
+        },
+        {
+          model:EquipmentFeatures,
+          attributes: ['id', 'description'],
+          as: 'equipmentFeatures'
+        },
+        {
+          model:Department,
+          attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+          include: [
+            {
+              model:Camp,
+              attributes:['id', 'city', 'school_type', 'active'],
+              as:'camp'
+            }
+          ],
+          as:'department'
+        }
+      ],
+      where: {
+        inventory_type:'employee',
+        active:true
+      }
+    });
+    
+    res.status(201).json({
+      message: 'Lista de equipos',
+      equipments: equipments,
+    });
+  } catch (error) {
+    console.log(error);
+    next(new handleError('Error al obtener los equipos', "SERVER_ERR"));
+  }
+}
+
 
 module.exports = {
   getEmployees,
   getEmployeesNames,
   getEmployeeById,
-  getEmployeeHistory
+  getEmployeeHistory,
+  getAssetCustodyForm
 };

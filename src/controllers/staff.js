@@ -6,8 +6,17 @@ const { handleError } = require('../utils/error');
 const getById = async (staffId) => {
   try {
     const staff = await Staff.findOne({
-      attributes: ['id', 'firstname', 'lastname','email', 'active', 'role', 'folio'],
-      where: { 
+      attributes: [
+        'id',
+        'firstname',
+        'lastname',
+        'email',
+        'active',
+        'role',
+        'folio',
+        'title',
+      ],
+      where: {
         id:staffId
       }
     });
@@ -16,7 +25,6 @@ const getById = async (staffId) => {
     throw error;
   }
 };
-
 
 const getAll = async (req, res, next) => {
   try {

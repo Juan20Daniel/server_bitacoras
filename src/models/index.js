@@ -61,12 +61,22 @@ EquipmentFeatures.belongsTo(Equipment, {foreignKey: 'equipment_id', as:'equipmen
 Equipment.belongsToMany(Staff, {
     through: StaffEquipment,
     foreignKey: 'equipment_id',
+    otherKey: 'staff_id',
     as: 'staff'
+});
+
+//Para aplicar filtros
+Equipment.belongsToMany(Staff, {
+    through: StaffEquipment,
+    foreignKey: 'equipment_id',
+    otherKey: 'staff_id',
+    as: 'staffFilter',
 });
 
 Staff.belongsToMany(Equipment, {
     through: StaffEquipment,
     foreignKey: 'staff_id',
+    otherKey: 'equipment_id',
     as: 'equipment'
 });
 
