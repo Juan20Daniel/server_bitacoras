@@ -71,10 +71,10 @@ router.patch('/vehicular/:checkOutId',
 router.patch('/registerExitHour/:checkOutId',
     auth,
     authorize(['basic','rrhh','operator','admin']),
-    validateField('vehicleId'),
+    validateField('vehicleId', false),
     validateField('checkOutType'),
-    validateField('departureKm'),
-    validateField('inputTankLavel'),
+    validateField('departureKm', false),
+    validateField('outputTankLavel', false),
     usersController.registerExitHour
 );
 

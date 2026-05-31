@@ -39,11 +39,19 @@ router.post('/',
     validateField('quantity'),
     validateField('unit'),
     validateField('observations', false),
-    validateField('bill'),
+    validateField('bill', false),
     validateField('departmentId'),
     articleController.addArticle
 );
 
+router.post('/register-entry/:articleCode',
+    auth,
+    authorize(['operator','admin']),
+    validateField('articleCode'),
+    validateField('quantity'),
+    validateField('bill'),
+    articleController.registerArticleEntry
+);
 
 router.patch('/:articleId', 
     auth,

@@ -28,6 +28,22 @@ const Vehicle = sequelizeConfig.define(
         active: {
             type: DataTypes.BOOLEAN,
             defaultValue: true
+        },
+        code: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        unit: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        license_plate: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        serie: {
+            type: DataTypes.INTEGER(10),
+            allowNull: true
         }
     },
     {

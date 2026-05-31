@@ -30,7 +30,6 @@ const getArticleById = async (id) => {
             'unit',
             'observations',
             'createdAt',
-            'bill',
             'active'
         ],
         include: [
@@ -78,7 +77,6 @@ const articlesByDepartment = async (req, res, next) => {
                 'unit',
                 'observations',
                 'createdAt',
-                'bill',
                 'active'
             ],
             include: [
@@ -170,7 +168,6 @@ const addArticle = async (req, res, next) => {
             code: code,
             unit: unit,
             observations: observations,
-            bill:bill,
             department_id: departmentId
         }
 
@@ -181,14 +178,16 @@ const addArticle = async (req, res, next) => {
                 data,
                 {transaction}
             );
-
-            await ArticleEntryHistory.create(
-                {
-                    quantity:quantity,
-                    article_id:article.id
-                },
-                {transaction}
-            );
+            if(Number(quantity)) {
+                await ArticleEntryHistory.create(
+                    {
+                        quantity:quantity,
+                        article_id:article.id,
+                        bill:bill,
+                    },
+                    {transaction}
+                );
+            }
 
             return article;
         });
@@ -209,14 +208,32 @@ const addArticle = async (req, res, next) => {
         next(new handleError('Error al agregar el equipo', "SERVER_ERR"));
     }
 }
-
+//Continuar con usar esta api  en el front
 const registerArticleEntry = async (req, res, next) => {
     try {
-        const { articleId } = req.params;
+        const { articleCode } = req.params;
         const { quantity, bill } = req.body;
+        const article = await Article.findOne({
+            attributes:['id', 'quantity'],
+            where: {code:articleCode}
+        });
 
-        await ArticleEntryHistory.create({quantity, article_id:articleId});
+        await sequelizeConfig.transaction(async (transaction) => {
+            await ArticleEntryHistory.create(
+                {quantity, article_id:article.id, bill},
+                {transaction}
+            );
 
+            await Article.update(
+                {quantity:parseInt(article.quantity, 10) + parseInt(quantity, 10)},
+                {
+                    where: {id:article.id},
+                    transaction
+                }
+            );
+        });
+        
+        
         res.status(201).json({
             message: 'Entrada de material registrada.',
         });
@@ -336,7 +353,6 @@ const searchArticle = async (req, res, next) => {
             'unit',
             'observations',
             'createdAt',
-            'bill',
             'active'
         ];
 

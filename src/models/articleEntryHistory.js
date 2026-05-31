@@ -13,6 +13,10 @@ const ArticleEntryHistory = sequelizeConfig.define(
             type: DataTypes.INTEGER,
             allowNull: false
         },
+        bill: {
+            type: DataTypes.STRING(10),
+            allowNull: true,
+        },
     },
     {
         tableName:'article_entry_history',

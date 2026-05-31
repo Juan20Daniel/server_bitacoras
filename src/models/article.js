@@ -30,10 +30,6 @@ const Article = sequelizeConfig.define(
             type: DataTypes.ENUM('PIEZA','PAQUETE','CAJA','BLOCK','TIRAS'),
             defaultValue: 'PIEZA'
         },
-        bill: {
-            type: DataTypes.STRING(10),
-            allowNull: false,
-        },
         observations: {
             type: DataTypes.TEXT,
             allowNull: true

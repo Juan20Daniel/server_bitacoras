@@ -47,13 +47,13 @@ const regexr = {
     employeeId: /^[0-9]{1,}$/,
     equipmentId: /^[0-9]{1,}$/,
     removeImage: /^true|false$/,
-    bill: /^[0-9/]{5,10}$/,
+    bill: /^[0-9a-zA-Z/]{5,10}$/,
     unit: /^PIEZA|PAQUETE|CAJA|BLOCK|TIRAS$/,
     articleId: /^[0-9]{1,}$/,
     query: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ$#@/=:;'\]\[?¿¡!()" \.,-\_]{1,50}$/,
     searchBy: /^folio|code|name$/,
-
     title:/^[a-zA-Z\.]{3,10}$/,
+    articleCode: /^[0-9]{4,10}$/,
 }
 
 module.exports = regexr;
