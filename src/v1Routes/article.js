@@ -44,13 +44,22 @@ router.post('/',
     articleController.addArticle
 );
 
-router.post('/register-entry/:articleCode',
+router.post('/register-entry',
     auth,
     authorize(['operator','admin']),
     validateField('articleCode'),
     validateField('quantity'),
-    validateField('bill'),
+    validateField('bill', false),
     articleController.registerArticleEntry
+);
+
+router.post('/register-output',
+    auth,
+    authorize(['operator','admin']),
+    validateField('employeeId'),
+    validateField('articleCode'),
+    validateField('quantity'),
+    articleController.registerArticleOutput
 );
 
 router.patch('/:articleId', 

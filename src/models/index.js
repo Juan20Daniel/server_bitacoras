@@ -48,6 +48,10 @@ ArticleEntryHistory.belongsTo(Article, {foreignKey:'article_id', as:'article'});
 Article.hasMany(ArticleOutputHistory, {foreignKey:'article_id', as:'articleOutputHistory'});
 ArticleOutputHistory.belongsTo(Article, {foreignKey:'article_id', as:'article'});
 
+//Relation between ArticleOutputHistory and Employee
+Staff.hasOne(ArticleOutputHistory, {foreignKey:'staff_id', as:'articleOutputHistory'});
+ArticleOutputHistory.belongsTo(Staff, {foreignKey:'staff_id', as:'staff'});
+
 //Relation between Department and Equipment
 Department.hasMany(Equipment, {foreignKey:'department_id', as:'equipment'});
 Equipment.belongsTo(Department, {foreignKey:'department_id', as:'department'});

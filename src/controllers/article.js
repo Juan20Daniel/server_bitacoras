@@ -208,19 +208,22 @@ const addArticle = async (req, res, next) => {
         next(new handleError('Error al agregar el equipo', "SERVER_ERR"));
     }
 }
-//Continuar con usar esta api  en el front
+
 const registerArticleEntry = async (req, res, next) => {
     try {
-        const { articleCode } = req.params;
-        const { quantity, bill } = req.body;
+        const { articleCode, quantity, bill } = req.body;
         const article = await Article.findOne({
             attributes:['id', 'quantity'],
             where: {code:articleCode}
         });
 
+        if(!article) {
+            return next(new handleError('Material no encontrado','NOT_FOUND_ERR'));
+        }
+
         await sequelizeConfig.transaction(async (transaction) => {
             await ArticleEntryHistory.create(
-                {quantity, article_id:article.id, bill},
+                {quantity, article_id:article.id, bill:bill??null},
                 {transaction}
             );
 
@@ -233,9 +236,9 @@ const registerArticleEntry = async (req, res, next) => {
             );
         });
         
-        
         res.status(201).json({
             message: 'Entrada de material registrada.',
+            lastQuantity:article.quantity
         });
     } catch (error) {
         console.log(error);
@@ -245,13 +248,39 @@ const registerArticleEntry = async (req, res, next) => {
 
 const registerArticleOutput = async (req, res, next) => {
     try {
-        const { articleId } = req.params;
-        const { quantity } = req.body;
+        const { employeeId, articleCode, quantity } = req.body;
 
-        await ArticleOutputHistory.create({quantity, article_id:articleId});
+        const article = await Article.findOne({
+            attributes:['id', 'quantity'],
+            where: {code:articleCode}
+        });
+
+        if(!article) {
+            return next(new handleError('Material no encontrado','NOT_FOUND_ERR'));
+        }
+
+        if(article.quantity < quantity) {
+            return next(new handleError('Limite exedido','VALIDATION_ERR'));
+        }
+
+        await sequelizeConfig.transaction( async (transaction) => {
+            await ArticleOutputHistory.create(
+                {quantity, article_id:article.id, staff_id:employeeId},
+                {transaction}
+            );
+
+            await Article.update(
+                {quantity:parseInt(article.quantity, 10) - parseInt(quantity, 10)},
+                {
+                    where: {id:article.id},
+                    transaction
+                }
+            );
+        })
 
         res.status(201).json({
             message: 'Salida de material registrada.',
+            lastQuantity:article.quantity
         });
     } catch (error) {
         console.log(error);
