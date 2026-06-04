@@ -60,7 +60,6 @@ Equipment.belongsTo(Department, {foreignKey:'department_id', as:'department'});
 Equipment.hasMany(EquipmentFeatures, {foreignKey: 'equipment_id', as:'equipmentFeatures'});
 EquipmentFeatures.belongsTo(Equipment, {foreignKey: 'equipment_id', as:'equipment'});
 
-
 //Relation between Equipment - StaffEquipment - Staff
 Equipment.belongsToMany(Staff, {
     through: StaffEquipment,

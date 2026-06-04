@@ -16,6 +16,14 @@ const fromStringDateToUnixDate = (date) => {
     return dayjs(`${year}-${mount}-${day}`).unix();
 }
 
+const addHours = (date, hours) => {
+    return dayjs.unix(date).add(hours, 'hours').unix();
+}
+
+const removeHours = (date, hours) => {
+    return dayjs.unix(date).subtract(hours, 'hours').unix()
+}
+
 const fromUnixDateToDateFormat = (date) => {
     return dayjs.unix(date).format("YYYY-MM-DD");
 }
@@ -70,5 +78,7 @@ module.exports = {
     fromStringDateToUnixDate,
     fromUnixDateToDateFormat,
     fromDbDateToNormalDate,
-    fromDbDateToUnix
+    fromDbDateToUnix,
+    addHours,
+    removeHours
 }
