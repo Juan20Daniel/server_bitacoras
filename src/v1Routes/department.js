@@ -34,7 +34,7 @@ router.get('/assetCustodyForm/:departmentId/:employeeId',
     departmentController.getAssetCustodyForm
 );
 
-router.post('/variable-department-report/:departmentId',
+router.get('/variable-department-report/:departmentId',
     auth,
     authorize(['operator','admin']),
     validateField('departmentId'),

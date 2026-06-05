@@ -1,11 +1,21 @@
 const { Op } = require('sequelize');
-const { Camp, Department, Equipment, Staff, EquipmentFeatures, EquipmentHistory, ArticleEntryHistory, ArticleOutputHistory, Article } = require('../models');
+const { 
+    Camp,
+    Department,
+    Equipment,
+    Staff,
+    EquipmentFeatures,
+    EquipmentHistory,
+    ArticleEntryHistory,
+    ArticleOutputHistory,
+    Article
+} = require('../models');
 const { handleError } = require('../utils/error');
 const { normalizeQueryParams } = require('../utils/queryParams');
-const { 
-    createWorkbook, 
-    createWorksheet, 
-    addHeader, 
+const {
+    createWorkbook,
+    createWorksheet,
+    addHeader,
     addBorderAndHeight
 } = require('../utils/excel');
 
@@ -16,8 +26,8 @@ const {
     fromDbDateToUnix,
     timeUnix,
     getDaysInMonth,
-    addHours,
-    removeHours
+    removeHours,
+    addUnixDay
 } = require('../utils/time');
 
 const styles = {
@@ -52,20 +62,17 @@ const columnsHeader = [
 const variableDepartmentReport = async (req, res, next) => {
     try {
         const { departmentId } = req.params;
-        const { initialDate, finalDate } = req.body;
+        const { initialDate, finalDate } = req.query;
         
         let initialUnixDate = fromStringDateToUnixDate(initialDate);
         let finalUnixDate = fromStringDateToUnixDate(finalDate);
-        //Tenemos que restarle 6 a la fecha de inicio para que me tome de las 12:00 hacia a adelante y no de las 6:00 hacia adelante
-        finalUnixDate = addHours(finalUnixDate, 24);
-        
-   
+
         if(initialUnixDate > finalUnixDate) {
             return next(new handleError("Rango de fecha invalido", "RANGE_ERR"));
         }
-       
-
-        console.log(fromUnixDateToDateFormat(initialUnixDate))
+        
+        finalUnixDate = addUnixDay(finalUnixDate, 1);
+        
         const articles = await Article.findAll({
             attributes:['id','name','unit','code','quantity'],
             include: [
@@ -82,8 +89,8 @@ const variableDepartmentReport = async (req, res, next) => {
                     where: {
                         createdAt: {
                             [Op.between]: [
-                                fromUnixDateToDateFormat(initialUnixDate),
-                                fromUnixDateToDateFormat(finalUnixDate)
+                                `${fromUnixDateToDateFormat(initialUnixDate)}T06:00:00.000Z`,
+                                `${fromUnixDateToDateFormat(finalUnixDate)}T06:00:00.000Z`
                             ]
                         }
                     }
@@ -100,8 +107,8 @@ const variableDepartmentReport = async (req, res, next) => {
                     where: {
                         createdAt: {
                             [Op.between]: [
-                                fromUnixDateToDateFormat(initialUnixDate),
-                                fromUnixDateToDateFormat(finalUnixDate)
+                                `${fromUnixDateToDateFormat(initialUnixDate)}T06:00:00.000Z`,
+                                `${fromUnixDateToDateFormat(finalUnixDate)}T06:00:00.000Z`
                             ]
                         }
                     }
@@ -112,41 +119,16 @@ const variableDepartmentReport = async (req, res, next) => {
                 active:true
             }
         });
-        // const checkOuts = await CheckOut.findAll({
-        //     attributes:['id','reason','departure_time','arrival_time','selfie_img','status','expiration_time','start_date'],
-        //     include: [
-        //         {
-        //             model:Staff,
-        //             as:'staff',
-        //             attributes:['id','firstname','lastname']
-        //         }
-        //     ],
-        //     where: {
-        //         status: {
-        //             [Op.in]:['initiated','canceled','incomplete','finalized'],
-        //         },
-        //         start_date: {
-        //             [Op.between]:[
-        //                 fromUnixDateToDateFormat(initialUnixDate),
-        //                 fromUnixDateToDateFormat(finalUnixDate)
-        //             ]
-        //         }
-        //     },
-        //     raw:true
-        // });
 
-        // if(checkOuts.length <= 0) {
-        //     return next(new handleError("No se encontraron registros", "NOT_FOUND_ERR"));
-        // }
+        if(articles.length <= 0) {
+            return next(new handleError("No se encontraro material para generar el reporte", "NOT_FOUND_ERR"));
+        }
 
-        // processCheckOutsExpireds(checkOuts);
+        const workbook = createWorkbook();
+        
+        const worksheet = createWorksheet(workbook);
 
-        //Generar el Excel
-        // const workbook = createWorkbook();
-        //Agregar hoja al excel
-        // const worksheet = createWorksheet(workbook);
-
-        // addHeader(columnsHeaderStaffDeparture, worksheet);
+        addHeader(columnsHeader, worksheet);
 
         //Centrar horiozontal y verticalmente el campo Estado.
         // worksheet.getRow(1).getCell(8).alignment = {
@@ -208,22 +190,22 @@ const variableDepartmentReport = async (req, res, next) => {
 
         // addBorderAndHeight(worksheet);
 
-        // res.setHeader(
-        //     "Content-Type",
-        //     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        // );
-        // res.setHeader(
-        //     "Content-Disposition",
-        //     "attachment; filename=reporte.xlsx"
-        // );
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=reporte.xlsx"
+        );
          
-        // await workbook.xlsx.write(res);
-        // res.end();
+        await workbook.xlsx.write(res);
+        res.end();
 
-        res.status(200).json({
-            message:'Reporte de material de papeleria',
-            articles
-        })
+        // res.status(200).json({
+        //     message:'Reporte de material de papeleria',
+        //     articles
+        // })
     } catch (error) {
         console.log(error);
         next(new handleError('Error al descargar el reporte de material de papeleria', "SERVER_ERR"));
