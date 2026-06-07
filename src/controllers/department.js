@@ -53,10 +53,10 @@ const columnsHeader = [
     { value: "CODIGO", key: "code", width: 10 },
     { value: "PRODUCTO", key: "product", width: 30 },
     { value: "UNIDAD", key: "unit", width: 10 },
-    { value: "STOCK AL", key: "initStock", width: 15 },
+    { value: "", key: "initStock", width: 20 },
     { value: "ENTRADAS", key: "inputs", width: 10 },
     { value: "SALIDAS", key: "outputs", width: 10 },
-    { value: "STOCK AL", key: "finalStock", width: 15 }
+    { value: "", key: "finalStock", width: 20 }
 ];
 
 const variableDepartmentReport = async (req, res, next) => {
@@ -72,6 +72,60 @@ const variableDepartmentReport = async (req, res, next) => {
         }
         
         finalUnixDate = addUnixDay(finalUnixDate, 1);
+
+        const department = await Department.findOne({
+            attributes:['id', 'name'],
+            where:{id:departmentId}
+        });
+
+        const formatInitialDate = fromUnixDateToDateFormat(initialUnixDate);
+        const formatFinalDate = fromUnixDateToDateFormat(finalUnixDate);
+
+        const historyInputs = await Article.findAll({
+            attributes: ['id','code','quantity'],
+            include: [
+                {
+                    model: ArticleEntryHistory,
+                    attributes: [
+                        'id',
+                        'quantity',
+                        'createdAt',
+                        'bill'
+                    ],
+                    required:false,
+                    as: 'articleEntryHistory',
+                    where: {
+                        createdAt: {
+                            [Op.lt]: `${formatFinalDate}T06:00:00.000Z`,
+                        }
+                    }
+                }
+            ],
+            where: {
+                department_id:departmentId,
+                active:true
+            }
+        });
+
+        const initialHistoryInputsByArticle = historyInputs.map(itemHistory => {
+            if(!itemHistory.articleEntryHistory.length) {
+                return {
+                    articleId: itemHistory.id,
+                    articleCode: itemHistory.code,
+                    quantity: 0
+                }
+            }
+        
+            const quantity = itemHistory.articleEntryHistory.reduce((preValue, currentValue) => {
+                return preValue+currentValue.quantity;
+            },0);
+
+            return {
+                articleId: itemHistory.id,
+                articleCode: itemHistory.code,
+                quantity: quantity
+            }
+        });
         
         const articles = await Article.findAll({
             attributes:['id','name','unit','code','quantity'],
@@ -89,8 +143,8 @@ const variableDepartmentReport = async (req, res, next) => {
                     where: {
                         createdAt: {
                             [Op.between]: [
-                                `${fromUnixDateToDateFormat(initialUnixDate)}T06:00:00.000Z`,
-                                `${fromUnixDateToDateFormat(finalUnixDate)}T06:00:00.000Z`
+                                `${formatInitialDate}T06:00:00.000Z`,
+                                `${formatFinalDate}T06:00:00.000Z`
                             ]
                         }
                     }
@@ -107,8 +161,8 @@ const variableDepartmentReport = async (req, res, next) => {
                     where: {
                         createdAt: {
                             [Op.between]: [
-                                `${fromUnixDateToDateFormat(initialUnixDate)}T06:00:00.000Z`,
-                                `${fromUnixDateToDateFormat(finalUnixDate)}T06:00:00.000Z`
+                                `${formatInitialDate}T06:00:00.000Z`,
+                                `${formatFinalDate}T06:00:00.000Z`
                             ]
                         }
                     }
@@ -120,15 +174,136 @@ const variableDepartmentReport = async (req, res, next) => {
             }
         });
 
-        if(articles.length <= 0) {
-            return next(new handleError("No se encontraro material para generar el reporte", "NOT_FOUND_ERR"));
-        }
-
-        const workbook = createWorkbook();
+        const outputsQuantityByArticle = articles.map(article => {
+            if(!article.articleOutputHistory.length) {
+                return {
+                    articleId: article.id,
+                    articleCode: article.code,
+                    quantity: 0
+                }
+            }
         
-        const worksheet = createWorksheet(workbook);
+            const quantity = article.articleOutputHistory.reduce((preValue, currentValue) => {
+                return preValue+currentValue.quantity;
+            }, 0);
 
-        addHeader(columnsHeader, worksheet);
+            return {
+                articleId: article.id,
+                articleCode: article.code,
+                quantity: quantity
+            }
+        });
+
+         const inputsQuantityByArticle = articles.map(article => {
+            if(!article.articleEntryHistory.length) {
+                return {
+                    articleId: article.id,
+                    articleCode: article.code,
+                    quantity: 0
+                }
+            }
+        
+            const quantity = article.articleEntryHistory.reduce((preValue, currentValue) => {
+                return preValue+currentValue.quantity;
+            }, 0);
+
+            return {
+                articleId: article.id,
+                articleCode: article.code,
+                quantity: quantity
+            }
+        });
+
+        const initialStockByArticle = initialHistoryInputsByArticle.slice().map(historyInput => {
+            const inputs = inputsQuantityByArticle.find(v => v.articleId === historyInput.articleId);
+            
+            let calcInputs = historyInput.quantity;
+            
+            if(inputs.quantity > 0) {
+                calcInputs = historyInput.quantity-inputs.quantity;
+            }
+            return {
+                ...historyInput,
+                quantity:calcInputs
+            }
+        });
+
+        const finalStockByArticle = initialHistoryInputsByArticle.slice().map(historyInput => {
+            const outputs = outputsQuantityByArticle.find(v => v.articleId === historyInput.articleId);
+            
+            let calcOutputs = historyInput.quantity;
+            
+            if(outputs.quantity > 0) {
+                calcOutputs = historyInput.quantity-outputs.quantity;
+            }
+            return {
+                ...historyInput,
+                quantity:calcOutputs
+            }
+        });
+
+        // if(articles.length <= 0) {
+        //     return next(new handleError("No se encontro material para generar el reporte", "NOT_FOUND_ERR"));
+        // }
+
+        // const workbook = createWorkbook();
+        
+        // const worksheet = createWorksheet(workbook);
+
+        // worksheet.mergeCells(1, 1, 1,7);
+
+        // worksheet.getCell('A1').value = `INVENTARIO DE PRODUCTOS DE ${department.name.toUpperCase()}`;
+
+        // worksheet.getCell('A1').alignment = {
+        //     horizontal: 'center',
+        //     vertical: 'middle'
+        // };
+
+        // worksheet.getCell('A1').fill = {
+        //     type: "pattern",
+        //     pattern: "solid",
+        //     fgColor: { argb: "FFD2D2D2" }
+        // }
+
+        // worksheet.getCell('A1').font = {
+        //     bold: true,
+        //     color: { argb: "00000000" },
+        //     size: 12
+        // };
+
+        // worksheet.columns = columnsHeader.map(header => ({
+        //     key: header.key, 
+        //     width: header.width
+        // }));
+
+        // worksheet.addRow(columnsHeader.map(header => header.value));
+
+        // worksheet.getRow(2).alignment = {
+        //     vertical: "middle",
+        // };
+
+        // worksheet.getRow(2).eachCell((cell) => {
+        //     cell.fill = {
+        //         type: "pattern",
+        //         pattern: "solid",
+        //         fgColor: { argb: "00000000" }
+        //     };
+        //     cell.font = {
+        //         bold: false,
+        //         color: { argb: "FFFFFFFF" },
+        //         size: 10
+        //     };
+        // });
+
+        // worksheet.getRow(2).getCell(4).value = `STOCK AL ${initialDate}`
+        // worksheet.getRow(2).getCell(7).value = `STOCK AL ${finalDate}`
+
+
+
+
+
+
+
 
         //Centrar horiozontal y verticalmente el campo Estado.
         // worksheet.getRow(1).getCell(8).alignment = {
@@ -190,22 +365,26 @@ const variableDepartmentReport = async (req, res, next) => {
 
         // addBorderAndHeight(worksheet);
 
-        res.setHeader(
-            "Content-Type",
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        );
-        res.setHeader(
-            "Content-Disposition",
-            "attachment; filename=reporte.xlsx"
-        );
+        // res.setHeader(
+        //     "Content-Type",
+        //     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        // );
+        // res.setHeader(
+        //     "Content-Disposition",
+        //     "attachment; filename=reporte.xlsx"
+        // );
          
-        await workbook.xlsx.write(res);
-        res.end();
+        // await workbook.xlsx.write(res);
+        // res.end();
 
-        // res.status(200).json({
-        //     message:'Reporte de material de papeleria',
-        //     articles
-        // })
+
+        res.status(200).json({
+            message:'lastHistory', 
+            initialStockByArticle: initialStockByArticle,
+            inputsByArticle: inputsQuantityByArticle,
+            outputsByArticle: outputsQuantityByArticle,
+            finalStockByArticle:finalStockByArticle
+        });
     } catch (error) {
         console.log(error);
         next(new handleError('Error al descargar el reporte de material de papeleria', "SERVER_ERR"));

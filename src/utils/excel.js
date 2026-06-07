@@ -8,18 +8,18 @@ const createWorksheet = (workbook) => {
     return workbook.addWorksheet("Tamplate");
 } 
 
-const addHeader = (headers, worksheet) => {
+const addHeader = (headers, worksheet, rowHeader = 1) => {
     worksheet.columns = headers.map(header => ({
         header: header.value, 
-        key: header.key, 
+        key: header.key,
         width: header.width
     }));
 
-    worksheet.getRow(1).alignment = {
+    worksheet.getRow(rowHeader).alignment = {
         vertical: "middle",
     };
 
-    worksheet.getRow(1).eachCell((cell) => {
+    worksheet.getRow(rowHeader).eachCell((cell) => {
         cell.fill = {
             type: "pattern",
             pattern: "solid",
