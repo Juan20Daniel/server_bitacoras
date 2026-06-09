@@ -30,25 +30,6 @@ const {
     addUnixDay
 } = require('../utils/time');
 
-const styles = {
-    initiated: {
-        fill: "FFFFFFFF", // blanco
-        font: "FF000000"  // negro
-    },
-    canceled: {
-        fill: "FFFFC000", // amarillo
-        font: "FF000000"  // negro
-    },
-    incomplete: {
-        fill: "FFFF0000", // rojo
-        font: "FFFFFFFF"  // blanco
-    },
-    finalized: {
-        fill: "FF00B050", // verde
-        font: "FFFFFFFF"  // blanco
-    }
-};
-
 const columnsHeader = [
     { value: "CODIGO", key: "code", width: 10 },
     { value: "PRODUCTO", key: "product", width: 30 },
@@ -81,52 +62,6 @@ const variableDepartmentReport = async (req, res, next) => {
         const formatInitialDate = fromUnixDateToDateFormat(initialUnixDate);
         const formatFinalDate = fromUnixDateToDateFormat(finalUnixDate);
 
-        const historyInputs = await Article.findAll({
-            attributes: ['id','code','quantity'],
-            include: [
-                {
-                    model: ArticleEntryHistory,
-                    attributes: [
-                        'id',
-                        'quantity',
-                        'createdAt',
-                        'bill'
-                    ],
-                    required:false,
-                    as: 'articleEntryHistory',
-                    where: {
-                        createdAt: {
-                            [Op.lt]: `${formatFinalDate}T06:00:00.000Z`,
-                        }
-                    }
-                }
-            ],
-            where: {
-                department_id:departmentId,
-                active:true
-            }
-        });
-
-        const initialHistoryInputsByArticle = historyInputs.map(itemHistory => {
-            if(!itemHistory.articleEntryHistory.length) {
-                return {
-                    articleId: itemHistory.id,
-                    articleCode: itemHistory.code,
-                    quantity: 0
-                }
-            }
-        
-            const quantity = itemHistory.articleEntryHistory.reduce((preValue, currentValue) => {
-                return preValue+currentValue.quantity;
-            },0);
-
-            return {
-                articleId: itemHistory.id,
-                articleCode: itemHistory.code,
-                quantity: quantity
-            }
-        });
-        
         const articles = await Article.findAll({
             attributes:['id','name','unit','code','quantity'],
             include: [
@@ -135,8 +70,7 @@ const variableDepartmentReport = async (req, res, next) => {
                     attributes:[
                         'id',
                         'quantity',
-                        'createdAt',
-                        'bill'
+                        'createdAt'
                     ],
                     required:false,
                     as: 'articleEntryHistory',
@@ -168,9 +102,110 @@ const variableDepartmentReport = async (req, res, next) => {
                     }
                 }
             ],
-            where:{ 
+            where: {
                 department_id:departmentId,
                 active:true
+            }
+        });
+
+        if(articles.length <= 0) {
+            return next(new handleError("No se encontro material para generar el reporte", "NOT_FOUND_ERR"));
+        }
+
+        const history = await Article.findAll({
+            attributes: ['id','code','quantity'],
+            include: [
+                {
+                    model: ArticleEntryHistory,
+                    attributes: [
+                        'id',
+                        'quantity',
+                        'createdAt'
+                    ],
+                    required:false,
+                    as: 'articleEntryHistory',
+                    where: {
+                        createdAt: {
+                            [Op.lt]: `${formatInitialDate}T06:00:00.000Z`,
+                        }
+                    }
+                },
+                {
+                    model: ArticleOutputHistory,
+                    attributes: [
+                        'id',
+                        'quantity',
+                        'createdAt',
+                    ],
+                    as: 'articleOutputHistory',
+                    required:false,
+                    where: {
+                        createdAt: {
+                            [Op.lt]: `${formatInitialDate}T06:00:00.000Z`,
+                        }
+                    }
+                }
+            ],
+            
+            where: {
+                department_id:departmentId,
+                active:true
+            }
+        });
+
+        const quantityHistory = history.map(historyItem => {
+            const { articleEntryHistory, articleOutputHistory } = historyItem;
+            if(!articleEntryHistory.length && !articleOutputHistory.length) {
+                return {
+                    articleId: historyItem.id,
+                    articleCode: historyItem.code,
+                    inputsQuantity: 0,
+                    outputQuantity: 0,
+                }
+            }
+
+            const inputsQuantity = articleEntryHistory.reduce((preValue, currentValue) => {
+                return preValue+currentValue.quantity;
+            },0);
+
+            const outputQuantity = articleOutputHistory.reduce((preValue, currentValue) => {
+                return preValue+currentValue.quantity;
+            },0);
+
+            return {
+                articleId: historyItem.id,
+                articleCode: historyItem.code,
+                inputsQuantity: inputsQuantity,
+                outputQuantity: outputQuantity,
+            }
+        });
+        
+        const initialStockByArticle = quantityHistory.map(historyItem => {
+            const quantity = historyItem.inputsQuantity - historyItem.outputQuantity
+            return {
+                articleId: historyItem.articleId,
+                articleCode: historyItem.articleCode,
+                quantity: quantity
+            }
+        });
+
+        const inputsQuantityByArticle = articles.map(article => {
+            if(!article.articleEntryHistory.length) {
+                return {
+                    articleId: article.id,
+                    articleCode: article.code,
+                    quantity: 0
+                }
+            }
+        
+            const quantity = article.articleEntryHistory.reduce((preValue, currentValue) => {
+                return preValue+currentValue.quantity;
+            }, 0);
+
+            return {
+                articleId: article.id,
+                articleCode: article.code,
+                quantity: quantity
             }
         });
 
@@ -194,197 +229,116 @@ const variableDepartmentReport = async (req, res, next) => {
             }
         });
 
-         const inputsQuantityByArticle = articles.map(article => {
-            if(!article.articleEntryHistory.length) {
-                return {
-                    articleId: article.id,
-                    articleCode: article.code,
-                    quantity: 0
-                }
-            }
-        
-            const quantity = article.articleEntryHistory.reduce((preValue, currentValue) => {
-                return preValue+currentValue.quantity;
-            }, 0);
+        const quantitiesResultByArticle = initialStockByArticle.map(historyInput => {
+            const historyQuantity = historyInput.quantity;
 
-            return {
-                articleId: article.id,
-                articleCode: article.code,
-                quantity: quantity
-            }
-        });
-
-        const initialStockByArticle = initialHistoryInputsByArticle.slice().map(historyInput => {
             const inputs = inputsQuantityByArticle.find(v => v.articleId === historyInput.articleId);
             
-            let calcInputs = historyInput.quantity;
+            const inputsQuantity = inputs.quantity;
             
-            if(inputs.quantity > 0) {
-                calcInputs = historyInput.quantity-inputs.quantity;
-            }
-            return {
-                ...historyInput,
-                quantity:calcInputs
-            }
-        });
-
-        const finalStockByArticle = initialHistoryInputsByArticle.slice().map(historyInput => {
             const outputs = outputsQuantityByArticle.find(v => v.articleId === historyInput.articleId);
-            
-            let calcOutputs = historyInput.quantity;
-            
-            if(outputs.quantity > 0) {
-                calcOutputs = historyInput.quantity-outputs.quantity;
-            }
+           
+            const outputsQuantity = outputs.quantity;
+
+            const finalQuantity = (historyQuantity + inputsQuantity) - outputsQuantity;
+
             return {
-                ...historyInput,
-                quantity:calcOutputs
+                articleId: historyInput.articleId,
+                articleCode: historyInput.articleCode,
+                initialStock: historyQuantity,
+                inputs: inputsQuantity,
+                outputs: outputsQuantity,
+                finalStock:finalQuantity
             }
         });
 
-        // if(articles.length <= 0) {
-        //     return next(new handleError("No se encontro material para generar el reporte", "NOT_FOUND_ERR"));
-        // }
-
-        // const workbook = createWorkbook();
+        const workbook = createWorkbook();
         
-        // const worksheet = createWorksheet(workbook);
+        const worksheet = createWorksheet(workbook);
 
-        // worksheet.mergeCells(1, 1, 1,7);
+        worksheet.mergeCells(1, 1, 1,7);
 
-        // worksheet.getCell('A1').value = `INVENTARIO DE PRODUCTOS DE ${department.name.toUpperCase()}`;
+        worksheet.getCell('A1').value = `INVENTARIO DE PRODUCTOS DE ${department.name.toUpperCase()}`;
 
-        // worksheet.getCell('A1').alignment = {
-        //     horizontal: 'center',
-        //     vertical: 'middle'
-        // };
+        worksheet.getCell('A1').alignment = {
+            horizontal: 'center',
+            vertical: 'middle'
+        };
 
-        // worksheet.getCell('A1').fill = {
-        //     type: "pattern",
-        //     pattern: "solid",
-        //     fgColor: { argb: "FFD2D2D2" }
-        // }
+        worksheet.getCell('A1').fill = {
+            type: "pattern",
+            pattern: "solid",
+            fgColor: { argb: "FFD2D2D2" }
+        }
 
-        // worksheet.getCell('A1').font = {
-        //     bold: true,
-        //     color: { argb: "00000000" },
-        //     size: 12
-        // };
+        worksheet.getCell('A1').font = {
+            bold: true,
+            color: { argb: "00000000" },
+            size: 12
+        };
 
-        // worksheet.columns = columnsHeader.map(header => ({
-        //     key: header.key, 
-        //     width: header.width
-        // }));
+        worksheet.columns = columnsHeader.map(header => ({
+            key: header.key, 
+            width: header.width
+        }));
 
-        // worksheet.addRow(columnsHeader.map(header => header.value));
+        worksheet.addRow(columnsHeader.map(header => header.value));
 
-        // worksheet.getRow(2).alignment = {
-        //     vertical: "middle",
-        // };
+        worksheet.getRow(2).alignment = {
+            vertical: "middle",
+        };
 
-        // worksheet.getRow(2).eachCell((cell) => {
-        //     cell.fill = {
-        //         type: "pattern",
-        //         pattern: "solid",
-        //         fgColor: { argb: "00000000" }
-        //     };
-        //     cell.font = {
-        //         bold: false,
-        //         color: { argb: "FFFFFFFF" },
-        //         size: 10
-        //     };
-        // });
-
-        // worksheet.getRow(2).getCell(4).value = `STOCK AL ${initialDate}`
-        // worksheet.getRow(2).getCell(7).value = `STOCK AL ${finalDate}`
-
-
-
-
-
-
-
-
-        //Centrar horiozontal y verticalmente el campo Estado.
-        // worksheet.getRow(1).getCell(8).alignment = {
-        //     horizontal: "center",
-        //     vertical: "middle"
-        // };
-
-        //Generar las filas
-        // checkOuts.forEach(checkOut => {
-        //     const selfieName = checkOut.selfie_img??'';
-        //     const selfieUrl = selfieName !== '' ? `${BASE_SELFIE_URL}/${checkOut.selfie_img}` : null;
-        //     const selfieLink = selfieUrl
-        //         ?   {
-        //                 text:'Ver selfie',
-        //                 hyperlink:`${selfieUrl}`
-        //             }
-        //         :   ''
-        //     const startDate = fromDbDateToNormalDate(checkOut.start_date);
-        //     const row = worksheet.addRow([
-        //         selfieLink,
-        //         `${checkOut['staff.firstname']}`,
-        //         `${checkOut['staff.lastname']}`,
-        //         `${startDate}`,
-        //         `${checkOut.departure_time??''}`,
-        //         `${checkOut.arrival_time??''}`,
-        //         `${checkOut.reason}`,
-        //         `${status[checkOut.status]}`
-        //     ]);
-            
-        //     row.alignment = {
-        //         vertical: "middle",
-        //     }
-        //     const selfieCell = row.getCell(1);
-        //     selfieCell.font = {
-        //         color: { argb: "FF1A66AC" },
-        //         underline: true
-        //     }
-
-        //     const statusStyle = styles[checkOut.status];
-
-        //     const statusCell = row.getCell(8);
-
-        //     statusCell.fill = {
-        //         type: "pattern",
-        //         pattern: "solid",
-        //         fgColor: { argb: statusStyle.fill }
-        //     };
-
-        //     statusCell.font = {
-        //         color: { argb: statusStyle.font },
-        //         bold: true
-        //     };
-
-        //     statusCell.alignment = { 
-        //         horizontal: "center", 
-        //         vertical: "middle", 
-        //     };
-        // })
-
-        // addBorderAndHeight(worksheet);
-
-        // res.setHeader(
-        //     "Content-Type",
-        //     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        // );
-        // res.setHeader(
-        //     "Content-Disposition",
-        //     "attachment; filename=reporte.xlsx"
-        // );
-         
-        // await workbook.xlsx.write(res);
-        // res.end();
-
-
-        res.status(200).json({
-            message:'lastHistory', 
-            initialStockByArticle: initialStockByArticle,
-            inputsByArticle: inputsQuantityByArticle,
-            outputsByArticle: outputsQuantityByArticle,
-            finalStockByArticle:finalStockByArticle
+        worksheet.getRow(2).eachCell((cell) => {
+            cell.fill = {
+                type: "pattern",
+                pattern: "solid",
+                fgColor: { argb: "00000000" }
+            };
+            cell.font = {
+                bold: false,
+                color: { argb: "FFFFFFFF" },
+                size: 10
+            };
         });
+
+        worksheet.getRow(2).getCell(4).value = `STOCK AL ${initialDate}`
+        worksheet.getRow(2).getCell(7).value = `STOCK AL ${finalDate}`
+        //Generar las filas
+        articles.forEach(article => {
+            const quantities = quantitiesResultByArticle.find(item => item.articleId === article.id);
+
+            const row = worksheet.addRow([
+                +article.code,
+                `${article.name}`,
+                `${article.unit}`,
+                quantities.initialStock,
+                quantities.inputs,
+                quantities.outputs,
+                quantities.finalStock,
+            ]);
+            
+            row.alignment = {
+                horizontal: "center",
+                vertical: "middle"
+            }
+            row.getCell(2).alignment = {
+                vertical: "middle",
+            }
+        });
+
+        addBorderAndHeight(worksheet, 18);
+
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        res.setHeader(
+            "Content-Disposition",
+            "attachment; filename=reporte.xlsx"
+        );
+         
+        await workbook.xlsx.write(res);
+        res.end();
     } catch (error) {
         console.log(error);
         next(new handleError('Error al descargar el reporte de material de papeleria', "SERVER_ERR"));

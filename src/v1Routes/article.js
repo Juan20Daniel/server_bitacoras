@@ -24,6 +24,13 @@ router.get('/search',
     articleController.searchArticle
 );
 
+router.get('/without-stock/:departmentId',
+    auth,
+    authorize(['operator','admin']),
+    validateField('departmentId'),
+    articleController.articlesWithoutStock
+);
+
 router.get('/status',
     auth,
     authorize(['operator','admin']),
@@ -69,8 +76,6 @@ router.patch('/:articleId',
     upload.single('image'),
     validateField('articleName', false),
     validateField('unit', false),
-    validateField('quantity', false),
-    validateField('bill', false),
     validateField('observations', false),
     validateField('removeImage'),
     articleController.edithArticle

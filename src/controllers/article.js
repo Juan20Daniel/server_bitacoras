@@ -118,6 +118,55 @@ const articlesByDepartment = async (req, res, next) => {
     }
 }
 
+const articlesWithoutStock = async (req, res, next) => {
+    try {
+        const { departmentId } = req.params;
+
+        const articles = await Article.findAll({
+            attributes: [
+                'id',
+                'image',
+                'name',
+                'quantity',
+                'code',
+                'unit',
+                'observations',
+                'createdAt',
+                'active'
+            ],
+            include: [
+                {
+                    model:Department,
+                    attributes: [
+                        'id',
+                        'name', 
+                        'inventory_type', 
+                        'createdAt',  
+                        'active'
+                    ],
+                    include: [
+                        {
+                            model:Camp,
+                            attributes:['id', 'city', 'school_type', 'active'],
+                            as:'camp'
+                        }
+                    ],
+                    as:'department'
+                }
+            ],
+            where: {
+                department_id:departmentId,
+                active:true,
+                quantity:0
+            }
+        });
+
+        res.status(200).json({message:"Materiales sin stock", articles});
+    } catch (error) {
+        next(new handleError('Error al obtener el estatus de los materiales', "SERVER_ERR"));
+    }
+}
+
 const statusArticle = async (req, res, next) => {
     try {
         const totalArticles = await Article.count({
@@ -298,9 +347,7 @@ const edithArticle = async (req, res, next) => {
         const { articleId } = req.params;
         const data = {
             name: req.body.articleName??false,
-            unit: req.body.unit??false,
-            quantity: req.body.quantity??false,
-            bill: req.body.bill??false,
+            unit: req.body.unit??false
         }
         
         for(const field in data) {
@@ -439,6 +486,7 @@ const searchArticle = async (req, res, next) => {
 module.exports = {
     addArticle,
     articlesByDepartment,
+    articlesWithoutStock,
     statusArticle,
     registerArticleEntry,
     registerArticleOutput,

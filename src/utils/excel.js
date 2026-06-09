@@ -35,9 +35,9 @@ const addHeader = (headers, worksheet, rowHeader = 1) => {
     return worksheet;
 }
 
-const addBorderAndHeight = (worksheet) => {
+const addBorderAndHeight = (worksheet, height = 25) => {
     return worksheet.eachRow((row) => {
-        row.height = 25;
+        row.height = height;
         row.eachCell((cell) => {
             cell.border = {
                 top: { style: "thin", color: { argb: "FF000000" } },
