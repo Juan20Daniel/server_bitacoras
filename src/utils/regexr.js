@@ -54,6 +54,7 @@ const regexr = {
     searchBy: /^folio|code|name$/,
     title:/^[a-zA-Z\.]{3,10}$/,
     articleCode: /^[0-9]{4,10}$/,
+    withoutStock: /^true|false$/
 }
 
 module.exports = regexr;

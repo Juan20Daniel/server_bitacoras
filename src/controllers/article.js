@@ -65,7 +65,17 @@ const articlesByDepartment = async (req, res, next) => {
     try {
         const { departmentId } = req.params;
         const page =  normalizeQueryParams(req.query.page);
+        const withoutStock = req.query.withoutStock??false;
         const pageSize = 20;
+
+        const where = {
+            department_id:departmentId,
+            active:true
+        }
+        
+        if(withoutStock === "true") {
+            where.quantity = 0;
+        }
 
         const articles = await Article.findAll({
             attributes: [
@@ -91,8 +101,13 @@ const articlesByDepartment = async (req, res, next) => {
                     ],
                     include: [
                         {
-                            model:Camp,
-                            attributes:['id', 'city', 'school_type', 'active'],
+                            model: Camp,
+                            attributes: [
+                                'id', 
+                                'city', 
+                                'school_type', 
+                                'active'
+                            ],
                             as:'camp'
                         }
                     ],
@@ -101,10 +116,7 @@ const articlesByDepartment = async (req, res, next) => {
             ],
             limit: pageSize,
             offset: (page - 1) * pageSize,
-            where: {
-                department_id:departmentId,
-                active:true
-            }
+            where: where
         });
         
         res.status(201).json({
@@ -115,55 +127,6 @@ const articlesByDepartment = async (req, res, next) => {
         });
     } catch (error) {
         next(new handleError('Error al obtener los materiales', "SERVER_ERR"));
-    }
-}
-
-const articlesWithoutStock = async (req, res, next) => {
-    try {
-        const { departmentId } = req.params;
-
-        const articles = await Article.findAll({
-            attributes: [
-                'id',
-                'image',
-                'name',
-                'quantity',
-                'code',
-                'unit',
-                'observations',
-                'createdAt',
-                'active'
-            ],
-            include: [
-                {
-                    model:Department,
-                    attributes: [
-                        'id',
-                        'name', 
-                        'inventory_type', 
-                        'createdAt',  
-                        'active'
-                    ],
-                    include: [
-                        {
-                            model:Camp,
-                            attributes:['id', 'city', 'school_type', 'active'],
-                            as:'camp'
-                        }
-                    ],
-                    as:'department'
-                }
-            ],
-            where: {
-                department_id:departmentId,
-                active:true,
-                quantity:0
-            }
-        });
-
-        res.status(200).json({message:"Materiales sin stock", articles});
-    } catch (error) {
-        next(new handleError('Error al obtener el estatus de los materiales', "SERVER_ERR"));
     }
 }
 
@@ -486,7 +449,6 @@ const searchArticle = async (req, res, next) => {
 module.exports = {
     addArticle,
     articlesByDepartment,
-    articlesWithoutStock,
     statusArticle,
     registerArticleEntry,
     registerArticleOutput,

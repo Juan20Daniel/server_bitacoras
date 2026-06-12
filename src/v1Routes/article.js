@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const articleController = require('../controllers/article');
-const { 
-    upload, 
-    authorize, 
-    auth, 
+const {
+    upload,
+    authorize,
+    auth,
     setUploadFolder,
     validateField,
 } = require('../middlewares');
@@ -13,6 +13,8 @@ router.get('/by-department/:departmentId',
     auth,
     authorize(['operator','admin']),
     validateField('departmentId'),
+    validateField('page'),
+    validateField('withoutStock'),
     articleController.articlesByDepartment
 );
 
@@ -22,13 +24,6 @@ router.get('/search',
     validateField('searchBy'),
     validateField('query'),
     articleController.searchArticle
-);
-
-router.get('/without-stock/:departmentId',
-    auth,
-    authorize(['operator','admin']),
-    validateField('departmentId'),
-    articleController.articlesWithoutStock
 );
 
 router.get('/status',
