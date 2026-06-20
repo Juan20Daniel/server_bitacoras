@@ -13,6 +13,7 @@ const {
     fromDbDateToNormalDate,
     fromDbDateToUnix,
     timeUnix,
+    getMonthName,
     getDaysInMonth
 } = require('../utils/time');
 
@@ -56,7 +57,7 @@ const columnsHeaderStaffDeparture = [
 ];
 
 const columnsHeaderVehicleExit = [
-    { value: "FECHA", key: "date", width: 12 },
+    { value: "FECHA", key: "date", width: 15 },
     { value: "CONDUCTOR", key: "driver", width: 20 },
     { value: "DESTINO", key: "destination", width: 20 },
     { value: "HORA DE SALIDA", key: "departureTime", width: 20 },
@@ -67,8 +68,7 @@ const columnsHeaderVehicleExit = [
     { value: "TANQUE DE REGRESO", key: "inputTankLavel", width: 22 },
     { value: "MOTIVO", key: "reason", width: 30 },
     { value: "TIEMPO FUERA", key: "timeOut", width: 17 },
-    { value: "KM RECORRIDO", key: "mileageTraveled", width: 17 },
-    { value: "VEHICULO", key: "vehicle", width: 25 },
+    { value: "KM RECORRIDO", key: "mileageTraveled", width: 17 }
 ];
 
 const updateExpirationDate = async (expireCheckOutIds) => {
@@ -233,8 +233,10 @@ const normalizeMonth = (month) => {
 }
 
 const vehicleExitReport = async (req, res, next) => {
-     try {
+    try {
         const { monthAndYear } = req.query;
+        const vehicleId = req.params.vehicleId;
+
         const [ month, year ] = monthAndYear.split('/');
         const monthNormalized = normalizeMonth(month);
 
@@ -246,7 +248,7 @@ const vehicleExitReport = async (req, res, next) => {
 
         const initialDate = `${year}-${month}-01`;
         const finalDate = `${year}-${month}-${daysInMonth}`;
-
+        const vehicle = await Vehicle.findOne({where:{id:vehicleId}});
         const checkOuts = await CheckOut.findAll({
             attributes:['reason','departure_time','arrival_time','status','start_date','finish_date'],
             include: [
@@ -259,10 +261,14 @@ const vehicleExitReport = async (req, res, next) => {
                     model: CheckOutVehicular,
                     as: 'checkOutVehicular',
                     attributes:['id','departure_km','arrival_km', 'outlet_tank_lavel', 'input_tank_lavel', 'destination'],
+                    required: true,
                     include: {
                         model:Vehicle,
                         as: 'vehicle',
                         attributes:['id', 'name']
+                    },
+                    where: {
+                        vehicle_id:vehicleId
                     }
                 }
             ],
@@ -286,11 +292,197 @@ const vehicleExitReport = async (req, res, next) => {
 
         const worksheet = createWorksheet(workbook);
 
-        addHeader(columnsHeaderVehicleExit, worksheet);
+        worksheet.columns = columnsHeaderVehicleExit.map(header => ({
+            key: header.key,
+            width: header.width
+        }));
+
+        worksheet.mergeCells('A1:B6');
+        worksheet.mergeCells('C1:E3');
+        worksheet.getCell('C1').value = 'UNIVERSIDAD ITECCE';
+        worksheet.getCell('C1').alignment = {
+            vertical: "middle",
+            horizontal: "center"
+        }
+        worksheet.getCell('C1').font = {
+            bold: true,
+            size: 16
+        }
+        worksheet.mergeCells('C4:E6');
+        worksheet.getCell('C4').value = `BITACORA DE USO VEHÍCULO\n UTILITARIO`;
+        worksheet.getCell('C4').alignment = {
+            vertical: "middle",
+            horizontal: "center",
+            wrapText: true
+        }
+         worksheet.getCell('C4').font = {
+            bold: true,
+            size: 16
+        }
+        worksheet.mergeCells('F1:K1');
+        worksheet.getCell('F1').value = {
+            richText: [
+                {
+                    text: 'Código: '
+                },
+                {
+                    text: `${vehicle.code}`,
+                    font: {
+                        bold: true
+                    }
+                }
+            ]
+        }
+        worksheet.mergeCells('F2:K2');
+        worksheet.getCell('F2').value = `Asunto: Formato`;
+        worksheet.mergeCells('F3:K3');
+        worksheet.getCell('F3').value = {
+            richText: [
+                {
+                    text: 'Responsable de llenado: '
+                },
+                {
+                    text: `Elemento de seguridad`,
+                    font: {
+                        bold: true
+                    }
+                }
+            ]
+        }
+        worksheet.mergeCells('F4:K4');
+        worksheet.getCell('F4').value = {
+            richText: [
+                {
+                    text: 'Área que Genera y supervisa: '
+                },
+                {
+                    text: `Coordinación Administrativa`,
+                    font: {
+                        bold: true
+                    }
+                }
+            ]
+        }
+        worksheet.getCell('F5').value = `Fecha de `;
+        worksheet.getCell('G5').value = `27/11/2019`;
+        worksheet.getCell('H5').value = `Fecha de`;
+        worksheet.getCell('H5').font = {
+            bold:true
+        }
+        worksheet.mergeCells('I5:K5');
+        worksheet.mergeCells('F6:K6');
+
+
+        worksheet.eachRow((row) => {
+            row.eachCell((cell) => {
+                cell.border = {
+                    top: { style: "thin", color: { argb: "FF000000" } },
+                    left: { style: "thin", color: { argb: "FF000000" } },
+                    bottom: { style: "thin", color: { argb: "FF000000" } },
+                    right: { style: "thin", color: { argb: "FF000000" } }
+                };
+            });
+        });
+
+        worksheet.getCell('A9').value = `UNIDAD ${vehicle.unit}:`;
+        worksheet.mergeCells('B9:D9');
+        worksheet.getCell('B9').value = vehicle.name.toUpperCase();
+
+        worksheet.getCell('F9').value = 'PLACAS:';
+        worksheet.getCell('F9').alignment = {
+            horizontal: 'center'
+        }
+        worksheet.getCell('G9').value = vehicle.license_plate;
+
+        worksheet.getCell('H9').value = 'SERIE:';
+        worksheet.getCell('H9').alignment = {
+            horizontal: 'center'
+        }
+        worksheet.getCell('I9').value = vehicle.serie;
+        worksheet.getCell('I9').alignment = {
+            horizontal: 'center'
+        }
+        worksheet.getRow(9).font = {
+            bold: true,
+            size: 15
+        }
+
+        const row9 = ['A9','B9','C9','D9','E9','F9','G9','H9','I9','J9','K9','L9']
+        row9.forEach(address => {
+            worksheet.getCell(address).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFBDD7EE' }
+            };
+            worksheet.getCell(address).border = {
+                top: { style: "thin", color: { argb: "FFAFAFAF" } },
+                left: { style: "thin", color: { argb: "FFAFAFAF" } },
+                bottom: { style: "thin", color: { argb: "FFAFAFAF" } },
+                right: { style: "thin", color: { argb: "FFAFAFAF" } }
+            };
+        });
+
+        worksheet.getCell('A10').value = 'REPORTE:';
+        const row10 = ['A10','B10','C10','D10','E10','F10','G10','H10','I10','J10','K10','L10']
+        row10.forEach(address => {
+            worksheet.getCell(address).fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FFBDD7EE' }
+            };
+            worksheet.getCell(address).border = {
+                top: { style: "thin", color: { argb: "FFAFAFAF" } },
+                left: { style: "thin", color: { argb: "FFAFAFAF" } },
+                bottom: { style: "thin", color: { argb: "FFAFAFAF" } },
+                right: { style: "thin", color: { argb: "FFAFAFAF" } }
+            };
+        });
+        //Continuar con mostrar el agosto 2025
+        worksheet.getCell('B10').value = `${getMonthName(month)} ${year}`;
+        worksheet.getCell('B10').font = {
+            color: { argb: "FF0033FF" },
+        }
+
+        worksheet.mergeCells('F10:H10');
+        worksheet.getCell('F10').value = 'VIGENCIA POLIZA SEGURO:';
+        worksheet.getRow(10).font = {
+            bold: true,
+            size: 15
+        }
+        
+        worksheet.getCell('A11').value = 'FECHA';
+        worksheet.getCell('B11').value = 'CONDUCTOR';
+        worksheet.getCell('C11').value = 'DESTINO';
+        worksheet.getCell('D11').value = 'HORA DE SALIDA';
+        worksheet.getCell('E11').value = 'KM SALIDA';
+        worksheet.getCell('F11').value = 'TANQUE SALIDA';
+        worksheet.getCell('G11').value = 'HORA REGRESO';
+        worksheet.getCell('H11').value = 'KM REGRESO';
+        worksheet.getCell('I11').value = 'TANQUE REGRESO';
+        worksheet.getCell('J11').value = 'MOTIVO';
+        worksheet.getCell('K11').value = 'TIEMPO FUERA';
+        worksheet.getCell('L11').value = 'KM RECORRIDOS';
+        worksheet.getRow(11).height = 20;
+        worksheet.getRow(11).font = {
+            color: { argb: "FFFFFFFF" },
+            size: 12
+        }
+        worksheet.getRow(11).alignment = {
+            horizontal: "center",
+            vertical: "middle"
+        }
+        worksheet.getRow(11).eachCell((cell) => {
+            cell.fill = {
+                type: 'pattern',
+                pattern: 'solid',
+                fgColor: { argb: 'FF000000' }
+            }
+        });
+
 
         checkOuts.forEach(checkOut => {
             let timeOut = '';
-            let mileageTraveled = undefined;
+            let mileageTraveled = '';
 
             if(checkOut.arrival_time) {
                 const startDate = fromDbDateToUnix(checkOut.start_date);
@@ -313,13 +505,12 @@ const vehicleExitReport = async (req, res, next) => {
                 `${checkOut.departure_time}`,
                 checkOut.checkOutVehicular.departure_km,
                 `${checkOut.checkOutVehicular.outlet_tank_lavel}`,
-                `${checkOut.arrival_time}`,
-                checkOut.checkOutVehicular.arrival_km,
-                `${checkOut.checkOutVehicular.input_tank_lavel}`,
-                `${checkOut.reason}`,
+                `${checkOut.arrival_time??''}`,
+                checkOut.checkOutVehicular.arrival_km??'',
+                `${checkOut.checkOutVehicular.input_tank_lavel??''}`,
+                `${checkOut.reason??''}`,
                 timeOut,
-                mileageTraveled,
-                checkOut.checkOutVehicular.vehicle.name,
+                mileageTraveled
             ]);
             
             row.alignment = {
@@ -351,8 +542,16 @@ const vehicleExitReport = async (req, res, next) => {
             }
         });
 
-        //Agregar alto y borde a todas las celdas
-        addBorderAndHeight(worksheet);
+        for (let row = 12; row <= worksheet.rowCount; row++) {
+            for (let col = 1; col <= 12; col++) { // A:M
+                worksheet.getCell(row, col).border = {
+                    top: { style: "thin", color: { argb: "FF000000" } },
+                    left: { style: "thin", color: { argb: "FF000000" } },
+                    bottom: { style: "thin", color: { argb: "FF000000" } },
+                    right: { style: "thin", color: { argb: "FF000000" } }
+                };
+            }
+        }
 
         res.setHeader(
             "Content-Type",

@@ -16,6 +16,11 @@ router.post('/',
     authController.login
 );
 
+router.patch('/resetPassword',
+    validateField('email'),
+    authController.resetPassword
+);
+
 router.patch('/changePassword/:id',
     auth,
     authorize(['basic','rrhh','operator','admin']),
@@ -23,5 +28,6 @@ router.patch('/changePassword/:id',
     validateField('password'),
     authController.changePassword
 );
+
 
 module.exports = router;

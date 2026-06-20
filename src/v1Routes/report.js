@@ -13,10 +13,11 @@ router.get(
 );
 
 router.get(
-    '/vehicleExitReport',
+    '/vehicleExitReport/:vehicleId',
     auth,
     authorize(['admin','operator']),
     validateField('monthAndYear'),
+    validateField('vehicleId'),
     reportController.vehicleExitReport
 );
 

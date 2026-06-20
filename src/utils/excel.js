@@ -10,7 +10,7 @@ const createWorksheet = (workbook) => {
 
 const addHeader = (headers, worksheet, rowHeader = 1) => {
     worksheet.columns = headers.map(header => ({
-        header: header.value, 
+        header: header.value,
         key: header.key,
         width: header.width
     }));
