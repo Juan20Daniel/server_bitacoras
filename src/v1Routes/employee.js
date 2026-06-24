@@ -41,4 +41,17 @@ router.get('/assetCustodyForm/:employeeId',
     employeeController.getAssetCustodyForm
 );
 
+router.post('/',
+    auth, 
+    authorize(['admin']),
+    validateField('campId'),
+    validateField('deparment'),
+    validateField('title', false),
+    validateField('firstname'),
+    validateField('lastname'),
+    validateField('email', false),
+    validateField('password', false),
+    employeeController.createEmployee
+);
+
 module.exports = router;

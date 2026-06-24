@@ -6,9 +6,8 @@ const { encryptPassword } = require('../utils/password');
 const { normalizeQueryParams } = require('../utils/queryParams');
 const { fromStringDateToUnixDate, fromUnixDateToDateFormat } = require('../utils/time');
 
-const getEmployeeById = async (req, res, next) => {
+const getByEmployeeId = async (employeeId) => {
   try {
-    const { employeeId } = req.params;
     const employee = await Staff.findOne({
       attributes:[
         'id', 
@@ -36,6 +35,17 @@ const getEmployeeById = async (req, res, next) => {
       ],
       where: {id:employeeId}
     });
+    
+    return employee;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getEmployeeById = async (req, res, next) => {
+  try {
+    const { employeeId } = req.params;
+    const employee = await getByEmployeeId(employeeId);
     
     res.status(200).json({
       message:'Empleado',
@@ -316,10 +326,74 @@ const getAssetCustodyForm = async (req, res, next) => {
 }
 
 
+const createEmployee = async (req, res, next) => {
+  try {
+    const {
+      campId,
+      deparment:deparmentName,
+      firstname,
+      lastname,
+      email,
+      password
+    } = req.body;
+    
+    let department = await Department.findOne({
+      where: {
+        camps_id: campId,
+        name: deparmentName
+      }
+    });
+
+    const lastStaffFolio = await Staff.findOne({
+      attributes:['folio'],
+      order:[['id', 'DESC']]
+    });
+
+    const folio = Number(lastStaffFolio.folio)+1;
+   
+    const result = await sequelizeConfig.transaction(async (transaction) => {
+      if(!department) {
+        department = await Department.create(
+          {
+            camps_id:campId,
+            name: deparmentName
+          },
+          {transaction}
+        );
+      }
+
+      const passwordEncrypted = password !== '' ? encryptPassword(password) : null;
+
+      const staff = await Staff.create(
+        {
+          firstname:firstname,
+          lastname:lastname,
+          email:email,
+          password:passwordEncrypted,
+          department_id:department.id,
+          folio:folio.toString()
+        },
+        {transaction}
+      );
+      return staff;
+    });
+
+    const staff = await getByEmployeeId(result.id)
+
+    res.status(201).json({message:'Usuario empleado.', staff});
+  } catch (error) {
+    console.log(error);
+    next(new handleError('Error al crear el empleado', "SERVER_ERR"));
+  }
+};
+
+
+
 module.exports = {
   getEmployees,
   getEmployeesNames,
   getEmployeeById,
   getEmployeeHistory,
-  getAssetCustodyForm
+  getAssetCustodyForm,
+  createEmployee
 };

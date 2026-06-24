@@ -13,6 +13,7 @@ const {
     fromDbDateToNormalDate,
     fromDbDateToUnix,
     timeUnix,
+    addUnixDay,
     getMonthName,
     getDaysInMonth
 } = require('../utils/time');
@@ -57,18 +58,19 @@ const columnsHeaderStaffDeparture = [
 ];
 
 const columnsHeaderVehicleExit = [
-    { value: "FECHA", key: "date", width: 15 },
-    { value: "CONDUCTOR", key: "driver", width: 20 },
-    { value: "DESTINO", key: "destination", width: 20 },
-    { value: "HORA DE SALIDA", key: "departureTime", width: 20 },
-    { value: "KM SALIDA", key: "departureKm", width: 13 },
-    { value: "TANQUE DE SALIDA", key: "outletTankLavel", width: 21 },
-    { value: "HORA DE REGRESO", key: "arrivalTime", width: 20 },
-    { value: "KM REGRESO", key: "arrivalKm", width: 15 },
-    { value: "TANQUE DE REGRESO", key: "inputTankLavel", width: 22 },
-    { value: "MOTIVO", key: "reason", width: 30 },
-    { value: "TIEMPO FUERA", key: "timeOut", width: 17 },
-    { value: "KM RECORRIDO", key: "mileageTraveled", width: 17 }
+    { key: "date", width: 15 },
+    { key: "driver", width: 20 },
+    { key: "destination", width: 20 },
+    { key: "departureTime", width: 20 },
+    { key: "departureKm", width: 13 },
+    { key: "outletTankLavel", width: 21 },
+    { key: "arrivalTime", width: 20 },
+    { key: "arrivalKm", width: 15 },
+    { key: "inputTankLavel", width: 22 },
+    { key: "reason", width: 30 },
+    { key: "timeOut", width: 17 },
+    { key: "mileageTraveled", width: 17 },
+    { key: "state", width: 17 }
 ];
 
 const updateExpirationDate = async (expireCheckOutIds) => {
@@ -107,12 +109,14 @@ const staffDepartureReport = async (req, res, next) => {
         const {initialDate, finalDate} = req.query;
         
         const initialUnixDate = fromStringDateToUnixDate(initialDate);
-        const finalUnixDate = fromStringDateToUnixDate(finalDate);
-       
+        let finalUnixDate = fromStringDateToUnixDate(finalDate);
+        
         if(initialUnixDate > finalUnixDate) {
             return next(new handleError("Rango de fecha invalido", "RANGE_ERR"));
         }
 
+        finalUnixDate = addUnixDay(finalUnixDate, 1);
+        
         const checkOuts = await CheckOut.findAll({
             attributes:['id','reason','departure_time','arrival_time','selfie_img','status','expiration_time','start_date'],
             include: [
@@ -221,6 +225,7 @@ const staffDepartureReport = async (req, res, next) => {
         await workbook.xlsx.write(res);
         res.end();
     } catch (error) {
+        console.log(error);
         next(new handleError('Error al descargar el reporte', "SERVER_ERR"));
     }
 }
@@ -407,7 +412,7 @@ const vehicleExitReport = async (req, res, next) => {
             size: 15
         }
 
-        const row9 = ['A9','B9','C9','D9','E9','F9','G9','H9','I9','J9','K9','L9']
+        const row9 = ['A9','B9','C9','D9','E9','F9','G9','H9','I9','J9','K9','L9','M9'];
         row9.forEach(address => {
             worksheet.getCell(address).fill = {
                 type: 'pattern',
@@ -423,7 +428,8 @@ const vehicleExitReport = async (req, res, next) => {
         });
 
         worksheet.getCell('A10').value = 'REPORTE:';
-        const row10 = ['A10','B10','C10','D10','E10','F10','G10','H10','I10','J10','K10','L10']
+
+        const row10 = ['A10','B10','C10','D10','E10','F10','G10','H10','I10','J10','K10','L10','M10'];
         row10.forEach(address => {
             worksheet.getCell(address).fill = {
                 type: 'pattern',
@@ -462,6 +468,7 @@ const vehicleExitReport = async (req, res, next) => {
         worksheet.getCell('J11').value = 'MOTIVO';
         worksheet.getCell('K11').value = 'TIEMPO FUERA';
         worksheet.getCell('L11').value = 'KM RECORRIDOS';
+        worksheet.getCell('M11').value = 'ESTADO';
         worksheet.getRow(11).height = 20;
         worksheet.getRow(11).font = {
             color: { argb: "FFFFFFFF" },
@@ -510,7 +517,8 @@ const vehicleExitReport = async (req, res, next) => {
                 `${checkOut.checkOutVehicular.input_tank_lavel??''}`,
                 `${checkOut.reason??''}`,
                 timeOut,
-                mileageTraveled
+                mileageTraveled,
+                `${status[checkOut.status]}`
             ]);
             
             row.alignment = {
@@ -540,10 +548,14 @@ const vehicleExitReport = async (req, res, next) => {
                 horizontal: "center",
                 vertical: "middle"
             }
+             row.getCell(13).alignment = {
+                horizontal: "center",
+                vertical: "middle"
+            }
         });
 
         for (let row = 12; row <= worksheet.rowCount; row++) {
-            for (let col = 1; col <= 12; col++) { // A:M
+            for (let col = 1; col <= 13; col++) { // A:M
                 worksheet.getCell(row, col).border = {
                     top: { style: "thin", color: { argb: "FF000000" } },
                     left: { style: "thin", color: { argb: "FF000000" } },

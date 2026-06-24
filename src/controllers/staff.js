@@ -69,69 +69,8 @@ const getByCampId = async (req, res, next) => {
   }
 };
 
-const post = async (req, res, next) => {
-  try {
-    const {
-      campId,
-      deparment:deparmentName,
-      firstname,
-      lastname,
-      email,
-      password
-    } = req.body;
-    
-    let department = await Department.findOne({
-      where: {
-        camps_id: campId,
-        name: deparmentName
-      }
-    });
-
-    const lastStaffFolio = await Staff.findOne({
-      attributes:['folio'],
-      order:[['id', 'DESC']]
-    });
-
-    const folio = Number(lastStaffFolio.folio)+1;
-   
-    const result = await sequelizeConfig.transaction(async (transaction) => {
-      if(!department) {
-        department = await Department.create(
-          {
-            camps_id:campId,
-            name: deparmentName
-          },
-          {transaction}
-        );
-      }
-
-      const passwordEncrypted = password !== '' ? encryptPassword(password) : null;
-
-      const staff = await Staff.create(
-        {
-          firstname:firstname,
-          lastname:lastname,
-          email:email,
-          password:passwordEncrypted,
-          department_id:department.id,
-          folio:folio.toString()
-        },
-        {transaction}
-      );
-      return staff;
-    });
-
-    const staff = await getById(result.id)
-
-    res.status(201).json({message:'Usuario creado.', staff});
-  } catch (error) {
-    next(new handleError('Error al crear el usuario', "SERVER_ERR"));
-  }
-};
-
 
 module.exports = {
   getAll,
   getByCampId,
-  post
 };

@@ -23,7 +23,7 @@ const addHeader = (headers, worksheet, rowHeader = 1) => {
         cell.fill = {
             type: "pattern",
             pattern: "solid",
-            fgColor: { argb: "FF1A66AC" }
+            fgColor: { argb: "FF000000" }
         };
         cell.font = {
             bold: true,
@@ -40,10 +40,10 @@ const addBorderAndHeight = (worksheet, height = 25) => {
         row.height = height;
         row.eachCell((cell) => {
             cell.border = {
-                top: { style: "thin", color: { argb: "FF000000" } },
-                left: { style: "thin", color: { argb: "FF000000" } },
-                bottom: { style: "thin", color: { argb: "FF000000" } },
-                right: { style: "thin", color: { argb: "FF000000" } }
+                top: { style: "thin", color: { argb: "FF666666" } },
+                left: { style: "thin", color: { argb: "FF666666" } },
+                bottom: { style: "thin", color: { argb: "FF666666" } },
+                right: { style: "thin", color: { argb: "FF666666" } }
             };
         });
     });
