@@ -39,7 +39,30 @@ const createCampus = async (req, res, next) => {
     }
 }
 
+const updateCampus = async (req, res, next) => {
+    try {
+        const { campId } = req.params;
+        const { city, schoolType } = req.body;
+        console.log({city, schoolType})
+        await Camp.update(
+            {
+                city: city,
+                school_type: schoolType
+            },
+            {where:{id:6}}
+        );
+
+        const camp = await getCampusById(campId);
+
+        res.status(201).json({message:"Campus actualizado", camp});
+    } catch (error) {
+        console.log(error);
+        next(new handleError('Error al actualizar el campus', "SERVER_ERR"));
+    }
+}
+
 module.exports = {
     getAllCampus,
-    createCampus
+    createCampus,
+    updateCampus
 }

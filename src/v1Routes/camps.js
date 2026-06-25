@@ -17,4 +17,13 @@ router.post('/',
     campsController.createCampus
 );
 
+router.patch('/:campId',
+    auth,
+    authorize(['admin']),
+    validateField('campId'),
+    validateField('city'),
+    validateField('schoolType'),
+    campsController.updateCampus
+);
+
 module.exports = router;

@@ -10,11 +10,11 @@ const Camp = sequelizeConfig.define(
             autoIncrement: true
         },
         city: {
-            type: DataTypes.ENUM('Manzanillo','Colima','Chavarin'),
-            defaultValue: 'Manzanillo'
+            type: DataTypes.STRING,
+            allowNull: false,
         },
         school_type: {
-            type: DataTypes.ENUM('Universidad','Bachillerato'),
+            type: DataTypes.STRING,
             allowNull: false
         },
         active: {
