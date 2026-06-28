@@ -42,6 +42,7 @@ const regexr = {
     observations: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ$#@/=:;'\]\[?¿¡!()" \.,-\_]{5,150}$/,
     monthAndYear: /^[0-9/]{7}$/,
     inventoryType:/^department|employee$/,
+    departmentInventoryType:/^static|variable$/,
     offset:/^[0-9]{1,}$/,
     page:/^[0-9]{1,}$/,
     employeeId: /^[0-9]{1,}$/,
@@ -54,7 +55,9 @@ const regexr = {
     searchBy: /^folio|code|name$/,
     title:/^[a-zA-Z\.]{3,10}$/,
     articleCode: /^[0-9]{4,10}$/,
-    withoutStock: /^true|false$/
+    withoutStock: /^true|false$/,
+    disable: /^true|false$/,
+    departmentName: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/
 }
 
 module.exports = regexr;

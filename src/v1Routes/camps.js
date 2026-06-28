@@ -10,7 +10,7 @@ router.get('/',
 );
 
 router.post('/', 
-    auth, 
+    auth,
     authorize(['admin']),
     validateField('city'),
     validateField('schoolType'),
@@ -24,6 +24,14 @@ router.patch('/:campId',
     validateField('city'),
     validateField('schoolType'),
     campsController.updateCampus
+);
+
+router.patch('/toggle/:campId',
+    auth,
+    authorize(['admin']),
+    validateField('campId'),
+    validateField('disable'),
+    campsController.toggleCampus
 );
 
 module.exports = router;

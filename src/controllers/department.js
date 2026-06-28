@@ -345,20 +345,30 @@ const variableDepartmentReport = async (req, res, next) => {
     }
 }
 
-const getDepartmentByCampus = async (req, res, next) => {
+const getDepartments = async (req, res, next) => {
     try {
         const {campId} = req.query;
-        const where = {}
+        const where = {};
+        if(req.query.active) {
+            where.active = req.query.active === 'true'
+                ? true
+                : false
+        }
         if(campId) {
             where.camps_id = campId;
         }
         const deparments = await Department.findAll({
-            attributes: ['id','name'],
+            attributes: ['id','name','inventory_type','active'],
             include: [
                 {
                     model: Camp,
                     as:'camp',
-                    attributes: ['id', 'city', 'school_type']
+                    attributes: [
+                        'id', 
+                        'city', 
+                        'school_type', 
+                        'active'
+                    ]
                 }
             ],
             where
@@ -376,12 +386,12 @@ const getDepartmentById = async (req, res, next) => {
         const { departmentId } = req.params;
        
         const deparment = await Department.findOne({
-            attributes: ['id','name','inventory_type'],
+            attributes: ['id','name','inventory_type', 'active'],
             include: [
                 {
-                    model:Camp,
-                    as:'camp',
-                    attributes: ['id','city','school_type']
+                    model: Camp,
+                    as: 'camp',
+                    attributes: ['id','city','school_type', 'active']
                 }
             ],
             where:{ id:departmentId }
@@ -587,16 +597,39 @@ const getAssetCustodyForm = async (req, res, next) => {
 
 
 
-const createDepartment = (req, res, next) => {
+const createDepartment = async (req, res, next) => {
     try {
+        const { departmentName, campId, departmentInventoryType } = req.body;
         
+        const newDepartment = await Department.create({
+            name: departmentName,
+            camps_id: campId,
+            inventory_type: departmentInventoryType,
+        });
+
+        const department = await Department.findOne({
+            attributes: ['id','name','inventory_type', 'active'],
+            include: [
+                {
+                    model: Camp,
+                    as: 'camp',
+                    attributes: ['id','city','school_type', 'active']
+                }
+            ],
+            where:{ id:newDepartment.id }
+        });
+
+        res.status(201).json({
+            message: 'Departamento creado',
+            department: department
+        });
     } catch (error) {
         next(new handleError('Error al crear el departamento', "SERVER_ERR"));
     }
 }
 
 module.exports = {
-    getDepartmentByCampus,
+    getDepartments,
     getDepartmentHistory,
     getDepartmentById,
     getAssetCustodyForm,

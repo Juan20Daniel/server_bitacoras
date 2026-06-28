@@ -6,7 +6,7 @@ const { authorize, auth, validateField } = require('../middlewares');
 router.get('/',
     auth,
     authorize(['operator','admin']),
-    departmentController.getDepartmentByCampus
+    departmentController.getDepartments
 );
 
 router.get('/:departmentId',
@@ -41,6 +41,15 @@ router.get('/variable-department-report/:departmentId',
     validateField('initialDate'),
     validateField('finalDate'),
     departmentController.variableDepartmentReport
+);
+
+router.post('/',
+    auth,
+    authorize(['admin']),
+    validateField('departmentName'),
+    validateField('campId'),
+    validateField('departmentInventoryType'),
+    departmentController.createDepartment
 );
 
 module.exports = router;

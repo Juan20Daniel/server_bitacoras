@@ -73,15 +73,21 @@ const getEmployeesNames = async (req, res, next) => {
   }
 };
 
-
+//req.query.active llega undifined al momento de consultar empleados
 const getEmployees = async (req, res, next) => {
   try {
     const page = normalizeQueryParams(req.query.page);
     const departmentId = normalizeQueryParams(req.query.departmentId);
     const pageSize = 20;
 
-    const where = {active:true};
+    const where = {};
 
+    if(req.query.active) {
+      where.active = req.query.active === 'true'
+        ? true
+        : false
+    }
+    console.log(req.query.active)
     if(req.query.departmentId) {
       where.department_id = departmentId;
     }

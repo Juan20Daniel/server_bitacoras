@@ -15,7 +15,17 @@ const getCampusById = async (id) => {
 
 const getAllCampus = async (req, res, next) => {
     try {
-        const camps = await Camp.findAll();
+        const where = {}
+        if(req.query.active) {
+            where.active = req.query.active === 'true' 
+                ? true
+                : false
+        }
+        
+        const camps = await Camp.findAll({
+            attributes:['id','city','school_type','active'],
+            where
+        });
         
         res.status(200).json({message:"Campus registrados", campsList:camps})
     } catch (error) {
@@ -43,13 +53,13 @@ const updateCampus = async (req, res, next) => {
     try {
         const { campId } = req.params;
         const { city, schoolType } = req.body;
-        console.log({city, schoolType})
+       
         await Camp.update(
             {
                 city: city,
                 school_type: schoolType
             },
-            {where:{id:6}}
+            {where:{id:campId}}
         );
 
         const camp = await getCampusById(campId);
@@ -61,8 +71,27 @@ const updateCampus = async (req, res, next) => {
     }
 }
 
+const toggleCampus = async (req, res, next) => {
+    try {
+        const { campId } = req.params;
+        
+        const disable = req.body.disable === 'true' ? false : true
+       
+        await Camp.update(
+            {active:disable},
+            {where:{id:campId}}
+        );
+
+        res.status(201).json({message:`Campus ${disable ? 'inavilitado' : 'habilitado'}`});
+    } catch (error) {
+        console.log(error);
+        next(new handleError(`Error al ${disable ? 'inavilitado' : 'habilitado'} el campus`, "SERVER_ERR"));
+    }
+}
+
 module.exports = {
     getAllCampus,
     createCampus,
-    updateCampus
+    updateCampus,
+    toggleCampus
 }
