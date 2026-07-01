@@ -52,4 +52,14 @@ router.post('/',
     departmentController.createDepartment
 );
 
+router.patch('/:departmentId',
+    auth,
+    authorize(['admin']),
+    validateField('departmentId'),
+    validateField('campId'),
+    validateField('departmentName'),
+    validateField('departmentInventoryType'),
+    departmentController.updateDepartment
+);
+
 module.exports = router;

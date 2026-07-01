@@ -411,7 +411,6 @@ const getDepartmentHistory = async (req, res, next) => {
         const initialDate = req.query.initialDate;
         const finalDate = req.query.finalDate;
 
-        
         if((initialDate && !finalDate) || (!initialDate && finalDate)) {
             return next(new handleError('Rango de fechas invalido', "VALIDATION_ERR"));
         }
@@ -595,8 +594,6 @@ const getAssetCustodyForm = async (req, res, next) => {
     }
 }
 
-
-
 const createDepartment = async (req, res, next) => {
     try {
         const { departmentName, campId, departmentInventoryType } = req.body;
@@ -628,11 +625,47 @@ const createDepartment = async (req, res, next) => {
     }
 }
 
+const updateDepartment = async (req, res, next) => {
+     try {
+        const { departmentId } = req.params;
+        const { departmentName, campId, departmentInventoryType } = req.body;
+
+        await Department.update(
+            {
+                name: departmentName,
+                camps_id: campId,
+                inventory_type: departmentInventoryType
+            },
+            {where:{ id:departmentId }}
+        );
+
+        const department = await Department.findOne({
+            attributes: ['id','name','inventory_type', 'active'],
+            include: [
+                {
+                    model: Camp,
+                    as: 'camp',
+                    attributes: ['id','city','school_type', 'active']
+                }
+            ],
+            where:{ id:departmentId }
+        });
+
+        res.status(201).json({
+            message: 'Departamento modificado',
+            department: department
+        });
+    } catch (error) {
+        next(new handleError('Error al modificar el departamento', "SERVER_ERR"));
+    }
+}
+
 module.exports = {
     getDepartments,
     getDepartmentHistory,
     getDepartmentById,
     getAssetCustodyForm,
     variableDepartmentReport,
-    createDepartment
+    createDepartment,
+    updateDepartment
 }
