@@ -42,6 +42,7 @@ const regexr = {
     observations: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ$#@/=:;'\]\[?¿¡!()" \.,-\_]{5,150}$/,
     monthAndYear: /^[0-9/]{7}$/,
     inventoryType:/^department|employee$/,
+    role:/^basic|rrhh|operator|admin$/,
     departmentInventoryType:/^static|variable$/,
     offset:/^[0-9]{1,}$/,
     page:/^[0-9]{1,}$/,

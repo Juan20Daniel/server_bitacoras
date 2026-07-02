@@ -335,8 +335,10 @@ const getAssetCustodyForm = async (req, res, next) => {
 const createEmployee = async (req, res, next) => {
   try {
     const {
+      role,
       campId,
       deparment:deparmentName,
+      title,
       firstname,
       lastname,
       email,
@@ -376,8 +378,10 @@ const createEmployee = async (req, res, next) => {
           lastname:lastname,
           email:email,
           password:passwordEncrypted,
+          role:role??null,
           department_id:department.id,
-          folio:folio.toString()
+          folio:folio.toString(),
+          title: title
         },
         {transaction}
       );

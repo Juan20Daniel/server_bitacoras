@@ -660,6 +660,27 @@ const updateDepartment = async (req, res, next) => {
     }
 }
 
+
+const toggleDepartment = async (req, res, next) => {
+    try {
+        const { departmentId } = req.params;
+        
+        const disable = req.body.disable === 'true' 
+            ? false 
+            : true
+       
+        await Department.update(
+            {active:disable},
+            {where:{id:departmentId}}
+        );
+
+        res.status(201).json({message:`Departamento ${disable ? 'inavilitado' : 'habilitado'}`});
+    } catch (error) {
+        console.log(error);
+        next(new handleError(`Error al ${disable ? 'inavilitado' : 'habilitado'} el departamento`, "SERVER_ERR"));
+    }
+}
+
 module.exports = {
     getDepartments,
     getDepartmentHistory,
@@ -667,5 +688,6 @@ module.exports = {
     getAssetCustodyForm,
     variableDepartmentReport,
     createDepartment,
-    updateDepartment
+    updateDepartment,
+    toggleDepartment
 }

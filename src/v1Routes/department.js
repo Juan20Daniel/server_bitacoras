@@ -62,4 +62,13 @@ router.patch('/:departmentId',
     departmentController.updateDepartment
 );
 
+router.patch('/toggle/:departmentId',
+    auth,
+    authorize(['admin']),
+    validateField('departmentId'),
+    validateField('disable'),
+    departmentController.toggleDepartment
+);
+
+
 module.exports = router;
