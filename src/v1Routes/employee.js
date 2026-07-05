@@ -42,7 +42,7 @@ router.get('/assetCustodyForm/:employeeId',
 );
 
 router.post('/',
-    auth, 
+    auth,
     authorize(['admin']),
     validateField('role'),
     validateField('campId'),
@@ -53,6 +53,21 @@ router.post('/',
     validateField('email', false),
     validateField('password', false),
     employeeController.createEmployee
+);
+
+router.patch('/:employeeId',
+    auth, 
+    authorize(['admin']),
+    validateField('employeeId'),
+    validateField('role', false),
+    validateField('campId', false),
+    validateField('deparment', false),
+    validateField('title', false),
+    validateField('firstname', false),
+    validateField('lastname', false),
+    validateField('email', false),
+    validateField('password', false),
+    employeeController.editEmployee
 );
 
 module.exports = router;

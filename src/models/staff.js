@@ -19,8 +19,7 @@ const Staff = sequelizeConfig.define(
         },
         email: {
             type: DataTypes.STRING(100),
-            allowNull: true,
-            unique: true,
+            allowNull: true
         },
         password: {
             type: DataTypes.STRING(100),

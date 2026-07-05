@@ -359,45 +359,73 @@ const createEmployee = async (req, res, next) => {
 
     const folio = Number(lastStaffFolio.folio)+1;
    
-    const result = await sequelizeConfig.transaction(async (transaction) => {
-      if(!department) {
-        department = await Department.create(
-          {
-            camps_id:campId,
-            name: deparmentName
-          },
-          {transaction}
-        );
+    const passwordEncrypted = password !== '' ? encryptPassword(password) : null;
+
+    const staff = await Staff.create(
+      {
+        firstname:firstname,
+        lastname:lastname,
+        email:email??null,
+        password:passwordEncrypted,
+        role:role??null,
+        department_id:department.id,
+        folio:folio.toString(),
+        title: title
       }
+    );
 
-      const passwordEncrypted = password !== '' ? encryptPassword(password) : null;
+    const employee = await getByEmployeeId(result.id)
 
-      const staff = await Staff.create(
-        {
-          firstname:firstname,
-          lastname:lastname,
-          email:email,
-          password:passwordEncrypted,
-          role:role??null,
-          department_id:department.id,
-          folio:folio.toString(),
-          title: title
-        },
-        {transaction}
-      );
-      return staff;
-    });
-
-    const staff = await getByEmployeeId(result.id)
-
-    res.status(201).json({message:'Usuario empleado.', staff});
+    res.status(201).json({message:'Nuevo empleado.', employee});
   } catch (error) {
     console.log(error);
     next(new handleError('Error al crear el empleado', "SERVER_ERR"));
   }
 };
 
+const editEmployee = async (req, res, next) => {
+  try {
+    const { employeeId } = req.params;
 
+    const data = {
+      role: req.body.role??false,
+      title: req.body.title??false,
+      firstname: req.body.firstname??false,
+      lastname: req.body.lastname??false,
+      email: req.body.email??false,
+      password: req.body.password
+        ? encryptPassword(req.body.password)
+        : false
+    }
+
+    for(const field in data) {
+      if(!data[field]) delete data[field];
+    }
+
+    let department = {}
+
+    if(req.body.campId && req.body.deparment ) {
+      department = await Department.findOne({
+        where: {
+          camps_id: req.body.campId,
+          name: req.body.deparment
+        }
+      });
+      data.department_id = department.id
+    }
+   
+    await Staff.update(
+      data,
+      {where:{id:employeeId}}
+    );
+
+    const employee = await getByEmployeeId(employeeId);
+
+    res.status(201).json({message:'Empleado actualizado.', employee});
+  } catch (error) {
+    next(new handleError('Error al actualizar el empleado', "SERVER_ERR"));
+  }
+}
 
 module.exports = {
   getEmployees,
@@ -405,5 +433,6 @@ module.exports = {
   getEmployeeById,
   getEmployeeHistory,
   getAssetCustodyForm,
-  createEmployee
+  createEmployee,
+  editEmployee
 };
