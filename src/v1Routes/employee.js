@@ -60,14 +60,21 @@ router.patch('/:employeeId',
     authorize(['admin']),
     validateField('employeeId'),
     validateField('role', false),
-    validateField('campId', false),
-    validateField('deparment', false),
+    validateField('departmentId', false),
     validateField('title', false),
     validateField('firstname', false),
     validateField('lastname', false),
     validateField('email', false),
     validateField('password', false),
     employeeController.editEmployee
+);
+
+router.patch('/toggle/:employeeId',
+    auth,
+    authorize(['admin']),
+    validateField('employeeId'),
+    validateField('disable'),
+    employeeController.toggleEmployee
 );
 
 module.exports = router;

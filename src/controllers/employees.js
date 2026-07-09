@@ -211,7 +211,7 @@ const getEmployeeHistory = async (req, res, next) => {
             'firstname', 
             'lastname',
             'email', 
-            'active', 
+            'active',
             'role', 
             'folio',
             'title'
@@ -331,7 +331,6 @@ const getAssetCustodyForm = async (req, res, next) => {
   }
 }
 
-
 const createEmployee = async (req, res, next) => {
   try {
     const {
@@ -390,6 +389,7 @@ const editEmployee = async (req, res, next) => {
     const data = {
       role: req.body.role??false,
       title: req.body.title??false,
+      department_id: req.body.departmentId??false,
       firstname: req.body.firstname??false,
       lastname: req.body.lastname??false,
       email: req.body.email??false,
@@ -400,18 +400,6 @@ const editEmployee = async (req, res, next) => {
 
     for(const field in data) {
       if(!data[field]) delete data[field];
-    }
-
-    let department = {}
-
-    if(req.body.campId && req.body.deparment ) {
-      department = await Department.findOne({
-        where: {
-          camps_id: req.body.campId,
-          name: req.body.deparment
-        }
-      });
-      data.department_id = department.id
     }
    
     await Staff.update(
@@ -427,6 +415,27 @@ const editEmployee = async (req, res, next) => {
   }
 }
 
+const toggleEmployee = async (req, res, next) => {
+  try {
+    const { employeeId } = req.params;
+    
+    const disable = req.body.disable === 'true' 
+      ? false 
+      : true
+    
+    await Staff.update(
+        {active:disable},
+        {where:{id:employeeId}}
+    );
+
+    res.status(201).json({message:`Empleado ${!disable ? 'inavilitado' : 'habilitado'}`});
+  } catch (error) {
+    console.log(error);
+    next(new handleError(`Error al ${!disable ? 'inavilitado' : 'habilitado'} el empleado`, "SERVER_ERR"));
+  }
+}
+
+
 module.exports = {
   getEmployees,
   getEmployeesNames,
@@ -434,5 +443,6 @@ module.exports = {
   getEmployeeHistory,
   getAssetCustodyForm,
   createEmployee,
-  editEmployee
+  editEmployee,
+  toggleEmployee
 };
