@@ -13,9 +13,10 @@ const regexr = {
     password: /^.{1,100}$/,
     vehicle: /^[A-Za-z0-9áÁéÉíÍóÓúÚñÑ\- ]{10,35}$/,
     destination: /^[A-Za-z0-9áÁéÉíÍóÓúÚñÑ\s ]{4,50}$/,
-    outputTankLavel: /^[A-Za-z0-9 íÍ/]{3,10}$/,
+    outputTankLavel: /^[a-zA-Z0-9\/ íÍ]{3,10}$/,
     reason: /^[A-Za-z0-9áÁéÉíÍóÓúÚñÑ\s. ]{4,50}$/,
     vehicleName: /^[A-Za-z0-9áÁéÉíÍóÓúÚñÑ ]{3,40}$/,
+    vehicle: /^[A-Za-z0-9áÁéÉíÍóÓúÚñÑ ]{3,40}$/,
     initMileage:/^[0-9]{1,6}$/,
     initTankLavel:/^[A-Za-z0-9 íÍ/]{3,10}$/,
     campId: /^[0-9]{1,}$/,
@@ -58,7 +59,10 @@ const regexr = {
     articleCode: /^[0-9]{4,10}$/,
     withoutStock: /^true|false$/,
     disable: /^true|false$/,
-    departmentName: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/
+    departmentName: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/,
+    carCode: /^[a-zA-Z0-9\-]{7,8}$/,
+    licensePlate: /^[a-zA-Z0-9\-]{6,10}$/,
+    carSerie: /^[0-9\-]{4,6}$/,
 }
 
 module.exports = regexr;

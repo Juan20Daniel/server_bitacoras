@@ -28,10 +28,37 @@ router.post('/',
     setUploadFolder('vehicles'),
     upload.single('image'),
     validateImage(),
-    validateField('vehicleName'),
+    validateField('vehicle'),
     validateField('initMileage'),
     validateField('initTankLavel'),
+    validateField('carCode'),
+    validateField('carSerie'),
+    validateField('licensePlate'),
     vehicleController.post
 );
+
+router.patch('/:vehicleId',
+    auth,
+    authorize(['admin']),
+    setUploadFolder('vehicles'),
+    upload.single('image'),
+    validateImage(false),
+    validateField('vehicle',false),
+    validateField('initMileage', false),
+    validateField('initTankLavel', false),
+    validateField('carCode', false),
+    validateField('carSerie', false),
+    validateField('licensePlate', false),
+    vehicleController.edithVehicle
+);
+
+router.patch('/toggle/:vehicleId',
+    auth,
+    authorize(['admin']),
+    validateField('vehicleId'),
+    validateField('disable'),
+    vehicleController.toggleVehicle
+);
+
 
 module.exports = router;

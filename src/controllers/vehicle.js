@@ -2,6 +2,29 @@ const { Vehicle, CheckOut, CheckOutVehicular, Staff } = require('../models');
 const { handleError } = require('../utils/error');
 const { moveImg, removeImg } = require('../utils/file');
 
+const getVehicleById = async (vehicleId) => {
+     try {
+        const vehice = await Vehicle.findOne({
+            attributes: [
+                'id',
+                'name',
+                'image',
+                'init_mileage',
+                'init_tank_lavel',
+                'active',
+                'code',
+                'unit',
+                'license_plate',
+                'serie'
+            ],
+            where: {id:vehicleId}
+        });
+        return vehice;
+    } catch (error) {
+        throw error;
+    }
+}
+
 const get = async (req, res, next) => {
     try {
         const vehices = await Vehicle.findAll({
@@ -11,34 +34,34 @@ const get = async (req, res, next) => {
                 'image',
                 'init_mileage',
                 'init_tank_lavel',
-                'active'
+                'active',
+                'code',
+                'unit',
+                'license_plate',
+                'serie'
             ]
         });
         res.status(200).json({
-            message:'Vehiculos', 
+            message:'Vehículos', 
             vehiclesList: vehices
         });
     } catch (error) {
-        next(new handleError('Error al crear el usuario', "SERVER_ERR"));
+        next(new handleError('Error al obtener los vehículos', "SERVER_ERR"));
     }
 }
 
-const post = async (req, res, next) => {
+const getCode = async () => {
     try {
-        const { vehicleName, initMileage, initTankLavel } = req.body;
-        const {filename} = req.file;
-        await Vehicle.create({
-            name:vehicleName,
-            image:filename,
-            init_mileage:initMileage,
-            init_tank_lavel:initTankLavel
+        const vehicles = await Vehicle.findOne({
+            attributes:['unit'],
+            order: [['id', 'DESC']]
         });
+        const unit = Number(vehicles.unit);
+        if(isNaN(unit)) throw new Error('Error al generar la unidad');
 
-        await moveImg(req.file, req.uploadFolder);
-        res.status(201).json({message:'Vehiculo agregado'});
+        return unit+1;
     } catch (error) {
-        await removeImg(req.file.filename);
-        next(new handleError('Error al agregar el vehiculo.', "SERVER_ERR"));
+        throw error;
     }
 }
 
@@ -84,8 +107,111 @@ const vehicularActivity = async (req, res, next) => {
     }
 }
 
+const post = async (req, res, next) => {
+    try {
+        const { 
+            vehicle,
+            initMileage,
+            initTankLavel,
+            carCode,
+            carSerie,
+            licensePlate
+        } = req.body;
+        const {filename} = req.file;
+        const unit = await getCode();
+
+        const result = await Vehicle.create({
+            name:vehicle,
+            image:filename,
+            init_mileage:initMileage,
+            init_tank_lavel:initTankLavel,
+            code: carCode,
+            unit: unit,
+            license_plate: licensePlate,
+            serie: carSerie
+        });
+
+        const newVehicle = await getVehicleById(result.id);
+
+        await moveImg(req.file, req.uploadFolder);
+
+        res.status(201).json({message:'Vehículo agregado', vehicle:newVehicle});
+    } catch (error) {
+        console.log(error);
+        await removeImg(req.file.filename);
+        next(new handleError('Error al agregar el vehículo.', "SERVER_ERR"));
+    }
+}
+
+const edithVehicle = async (req, res, next) => {
+    try {
+        const { vehicleId } = req.params;
+        const data = {
+            name: req.body.vehicle??false,
+            init_mileage: req.body.initMileage??false,
+            init_tank_lavel: req.body.initTankLavel??false,
+            code: req.body.carCode??false,
+            license_plate: req.body.licensePlate??false,
+            serie: req.body.carSerie??false,
+        }
+
+        for(const field in data) {
+            if(!data[field]) delete data[field];
+        }
+
+        if(req.file) {
+            const vehicle = await Vehicle.findOne({
+                attributes:['image'],
+                where:{id:vehicleId}
+            });
+            await removeImg(vehicle.image, 'public/images/vehicles');
+            data.image = req.file.filename;
+        }
+
+        await Vehicle.update(
+            data,
+            {where:{id:vehicleId}}
+        );
+
+        if(req.file) {
+            await moveImg(req.file, req.uploadFolder);
+        }
+
+        const vehicleUpdated = await getVehicleById(vehicleId);
+
+        res.status(200).json({message:'Vehículo modificado', vehicle:vehicleUpdated});
+    } catch (error) {
+        console.log(error);
+        if(req.file) {
+            await removeImg(req.file.filename, 'public/temp');
+        }
+        next(new handleError('Error al actualizar el vehículo', "SERVER_ERR"));
+    }
+}
+
+const toggleVehicle = async (req, res, next) => {
+    try {
+        const { vehicleId } = req.params;
+        
+        const disable = req.body.disable === 'true' ? false : true
+       
+        await Vehicle.update(
+            {active:disable},
+            {where:{id:vehicleId}}
+        );
+
+        res.status(201).json({message:`Vehículo ${!disable ? 'inavilitado' : 'habilitado'}`});
+    } catch (error) {
+        console.log(error);
+        next(new handleError(`Error al ${disable ? 'inavilitado' : 'habilitado'} el vehículo`, "SERVER_ERR"));
+    }
+}
+
+
 module.exports = {
     get,
     post,
-    vehicularActivity
+    vehicularActivity,
+    edithVehicle,
+    toggleVehicle
 }
