@@ -562,11 +562,22 @@ const searchEquipment = async (req, res, next) => {
             },
             {
                 model:Department,
-                attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+                attributes: [
+                    'id',
+                    'name',
+                    'inventory_type',
+                    'createdAt',
+                    'active'
+                ],
                 include: [
                     {
                         model:Camp,
-                        attributes:['id', 'city', 'school_type', 'active'],
+                        attributes:[
+                            'id',
+                            'city',
+                            'school_type',
+                            'active'
+                        ],
                         as:'camp'
                     }
                 ],

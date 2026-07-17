@@ -1,10 +1,10 @@
-const { Op } = require('sequelize');
+const { Op, fn, col, where } = require('sequelize');
 const { sequelizeConfig } = require('../database/sequelizeConfig');
-const { Staff, Department, EquipmentFeatures, EquipmentHistory, Equipment, Camp } = require('../models');
 const { handleError } = require('../utils/error');
 const { encryptPassword } = require('../utils/password');
 const { normalizeQueryParams } = require('../utils/queryParams');
 const { fromStringDateToUnixDate, fromUnixDateToDateFormat } = require('../utils/time');
+const { Staff, Department, EquipmentFeatures, EquipmentHistory, Equipment, Camp } = require('../models');
 
 const getByEmployeeId = async (employeeId) => {
   try {
@@ -145,6 +145,70 @@ const getEmployees = async (req, res, next) => {
   }
 };
 
+const searchEmployee = async (req, res, next) => {
+  try {
+    const query = req.query.query;
+  
+    const result = await Staff.findAll({
+       attributes:[
+        'id',
+        'firstname',
+        'lastname',
+        'email',
+        'active',
+        'role',
+        'folio',
+        'title'
+      ],
+      include: [
+        {
+          model:Department,
+          attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+          include: [
+            {
+              model:Camp,
+              attributes:['id', 'city', 'school_type', 'active'],
+              as:'camp'
+            }
+          ],
+          as:'department',
+        }
+      ],
+      where: {
+        [Op.or]: [
+          {
+            firstname: {
+              [Op.like]: `%${query}%`
+            }
+          },
+          {
+            lastname: {
+              [Op.like]: `%${query}%`
+            }
+          },
+          {
+            email: {
+              [Op.like]: `%${query}%`
+            }
+          },
+          where(
+            fn('CONCAT', col('firstname'), ' ', col('lastname')),
+            {
+              [Op.like]: `%${query}%`
+            }
+          )
+        ]
+      }
+    });
+
+    res.status(200).json({
+      message:'Resultados de búsqueda',
+      result
+    });
+  } catch (error) {
+    next(new handleError('Error al buscar el empleado', "SERVER_ERR"));
+  }
+}
 
 const getEmployeeHistory = async (req, res, next) => {
   try {
@@ -442,6 +506,7 @@ module.exports = {
   getEmployeeById,
   getEmployeeHistory,
   getAssetCustodyForm,
+  searchEmployee,
   createEmployee,
   editEmployee,
   toggleEmployee

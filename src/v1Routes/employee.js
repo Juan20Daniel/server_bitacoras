@@ -17,6 +17,13 @@ router.get('/names',
     employeeController.getEmployeesNames
 );
 
+router.get('/search',
+    auth,
+    authorize(['operator','admin']),
+    validateField('query'),
+    employeeController.searchEmployee
+);
+
 router.get('/:employeeId', 
     auth,
     authorize(['operator','admin']),
@@ -40,6 +47,7 @@ router.get('/assetCustodyForm/:employeeId',
     validateField('employeeId'),
     employeeController.getAssetCustodyForm
 );
+
 
 router.post('/',
     auth,
