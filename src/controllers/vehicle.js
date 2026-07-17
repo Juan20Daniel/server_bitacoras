@@ -113,8 +113,8 @@ const post = async (req, res, next) => {
             vehicle,
             initMileage,
             initTankLavel,
-            carCode,
-            carSerie,
+            code,
+            serie,
             licensePlate
         } = req.body;
         const {filename} = req.file;
@@ -123,12 +123,12 @@ const post = async (req, res, next) => {
         const result = await Vehicle.create({
             name:vehicle,
             image:filename,
-            init_mileage:initMileage,
+            init_mileage: initMileage,
             init_tank_lavel:initTankLavel,
-            code: carCode,
+            code: code,
             unit: unit,
             license_plate: licensePlate,
-            serie: carSerie
+            serie: serie
         });
 
         const newVehicle = await getVehicleById(result.id);
@@ -150,9 +150,9 @@ const edithVehicle = async (req, res, next) => {
             name: req.body.vehicle??false,
             init_mileage: req.body.initMileage??false,
             init_tank_lavel: req.body.initTankLavel??false,
-            code: req.body.carCode??false,
+            code: req.body.code??false,
             license_plate: req.body.licensePlate??false,
-            serie: req.body.carSerie??false,
+            serie: req.body.serie??false,
         }
 
         for(const field in data) {

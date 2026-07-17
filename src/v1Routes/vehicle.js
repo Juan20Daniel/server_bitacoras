@@ -31,8 +31,8 @@ router.post('/',
     validateField('vehicle'),
     validateField('initMileage'),
     validateField('initTankLavel'),
-    validateField('carCode'),
-    validateField('carSerie'),
+    validateField('code'),
+    validateField('serie'),
     validateField('licensePlate'),
     vehicleController.post
 );
@@ -46,8 +46,8 @@ router.patch('/:vehicleId',
     validateField('vehicle',false),
     validateField('initMileage', false),
     validateField('initTankLavel', false),
-    validateField('carCode', false),
-    validateField('carSerie', false),
+    validateField('code', false),
+    validateField('serie', false),
     validateField('licensePlate', false),
     vehicleController.edithVehicle
 );

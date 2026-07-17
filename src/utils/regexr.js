@@ -60,9 +60,9 @@ const regexr = {
     withoutStock: /^true|false$/,
     disable: /^true|false$/,
     departmentName: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,40}$/,
-    carCode: /^[a-zA-Z0-9\-]{7,8}$/,
+    code: /^[a-zA-Z0-9\-]{7,8}$/,
     licensePlate: /^[a-zA-Z0-9\-]{6,10}$/,
-    carSerie: /^[0-9\-]{4,6}$/,
+    serie: /^[0-9\-]{4,6}$/,
 }
 
 module.exports = regexr;
