@@ -138,9 +138,19 @@ const resetPassword = async (req, res, next) => {
     }
 }
 
+const getEmployeeRole = (req, res, next) => {
+    try {
+        res.status(201).json({message: `Rol del usuairo`, userRol:req.staff.role});
+    } catch (error) {
+        console.log(error);
+        next(new handleError('Error al obtener el rol del usuario', "SERVER_ERR"));
+    }
+}
+
 module.exports = {
     login,
     passwordVerification,
     changePassword,
-    resetPassword
+    resetPassword,
+    getEmployeeRole
 }

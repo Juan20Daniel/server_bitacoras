@@ -27,6 +27,10 @@ const getVehicleById = async (vehicleId) => {
 
 const get = async (req, res, next) => {
     try {
+        let where = {active:true}
+        if(req.query.all) {
+            if(req.query.all === 'true') where = {}
+        }
         const vehices = await Vehicle.findAll({
             attributes: [
                 'id',
@@ -39,7 +43,8 @@ const get = async (req, res, next) => {
                 'unit',
                 'license_plate',
                 'serie'
-            ]
+            ],
+            where: where
         });
         res.status(200).json({
             message:'Vehículos', 

@@ -10,6 +10,13 @@ router.get('/:password',
     authController.passwordVerification
 );
 
+router.get('/user/rol',
+    auth,
+    authorize(['basic','rrhh','operator','admin']),
+    authController.getEmployeeRole
+);
+
+
 router.post('/',
     validateField('email'),
     validateField('password'),

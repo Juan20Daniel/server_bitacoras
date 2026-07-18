@@ -202,8 +202,8 @@ const searchEmployee = async (req, res, next) => {
     });
 
     res.status(200).json({
-      message:'Resultados de búsqueda',
-      result
+      message: 'Resultados de búsqueda',
+      employees: result
     });
   } catch (error) {
     next(new handleError('Error al buscar el empleado', "SERVER_ERR"));
