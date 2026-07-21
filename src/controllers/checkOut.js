@@ -287,6 +287,19 @@ const updateCheckOutStaff = async (req, res, next) => {
     try {
         const { checkOutId } = req.params;
         const { reason } = req.body;
+
+        const checkOut = await CheckOut.findOne({
+            attributes:['id','status'],
+            where:{id:checkOutId}
+        });
+
+        if(checkOut.status !== 'programmed') {
+            return next(new handleError(
+                'Ya no es posible realizar la modificación',
+                "REQUEST_STATE_CHANGED"
+            ));
+        }
+
         await CheckOut.update(
             {reason:reason},
             {where:{id:checkOutId}},
@@ -305,6 +318,18 @@ const updateCheckOutVehicular = async (req, res, next) => {
     try {
         const { checkOutId } = req.params;
         const { reason, vehicleId, destination } = req.body;
+
+        const checkOut = await CheckOut.findOne({
+            attributes:['id','status'],
+            where:{id:checkOutId}
+        });
+
+        if(checkOut.status !== 'programmed') {
+            return next(new handleError(
+                'Ya no es posible realizar la modificación',
+                "REQUEST_STATE_CHANGED"
+            ));
+        }
 
         await sequelizeConfig.transaction(async (transaction) => {
             await CheckOut.update(
@@ -448,7 +473,7 @@ const registerInputHourVehicular = async (req, res, next) => {
             },
             where: {id:checkOutId}, 
         });
-        const checkOut = checkOutInstance.toJSON()
+        const checkOut = checkOutInstance.toJSON();
         
         const now = timeUnix();
 

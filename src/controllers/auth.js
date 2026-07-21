@@ -34,7 +34,7 @@ const login = async (req, res, next) => {
         }
 
         if(!comparePasswords(password, staff.password)) {
-            return next( new handleError("No autorizado", "AUTH_ERR"));
+            return next(new handleError("No autorizado", "AUTH_ERR"));
         }
 
         if(!staff.active) {
