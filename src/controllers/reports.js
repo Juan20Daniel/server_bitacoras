@@ -145,7 +145,7 @@ const staffDepartureReport = async (req, res, next) => {
         }
 
         processCheckOutsExpireds(checkOuts);
-
+        
         //Generar el Excel
         const workbook = createWorkbook();
         //Agregar hoja al excel

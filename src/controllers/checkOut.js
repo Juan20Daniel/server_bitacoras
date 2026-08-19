@@ -366,6 +366,15 @@ const registerExitHour = async (req, res, next) => {
         const { checkOutId } = req.params;
         const { vehicleId, checkOutType, departureKm, outputTankLavel } = req.body;
 
+        const currentCheckOut = await CheckOut.findOne({
+            attributes:['id','status'],
+            where:{id:checkOutId}
+        });
+
+        if(currentCheckOut.status !== 'programmed') {
+            return next(new handleError('El registro ya no esta disponible', 'VALIDATION_ERR'));
+        }
+
         await sequelizeConfig.transaction(async (transaction) => {
             await CheckOut.update(
                 {
@@ -422,6 +431,11 @@ const registerInputHourStaff = async (req, res, next) => {
         const { filename } = req.file;
         const { checkOutId } = req.params;
         const checkOut = await CheckOut.findOne({where:{id:checkOutId}});
+
+        if(checkOut.status !== 'initiated') {
+            return next(new handleError('El registro ya no esta disponible', 'REQUEST_STATE_CHANGED'));
+        }
+
         const now = timeUnix();
 
         if(now > checkOut.expiration_time) {
@@ -473,6 +487,9 @@ const registerInputHourVehicular = async (req, res, next) => {
             },
             where: {id:checkOutId}, 
         });
+        if(checkOutInstance.status !== 'initiated') {
+            return next(new handleError('El registro ya no esta disponible', 'REQUEST_STATE_CHANGED'));
+        }
         const checkOut = checkOutInstance.toJSON();
         
         const now = timeUnix();
@@ -542,6 +559,23 @@ const registerInputHourVehicular = async (req, res, next) => {
 const removeCheckOut = async (req, res, next) => {
      try {
         const { checkOutId } = req.params;
+
+        const checkOut = await CheckOut.findOne({
+            attributes:['id','status'],
+            where:{id:checkOutId}
+        });
+
+        if(checkOut.status !== 'programmed') {
+            return next(new handleError('El registro ya no esta disponible', 'REQUEST_STATE_CHANGED'));
+        }
+
+        if(checkOut.status !== 'programmed') {
+            return next(new handleError(
+                'Ya no es posible realizar la eliminación',
+                "REQUEST_STATE_CHANGED"
+            ));
+        }
+
         await CheckOut.update(
             {status:'removed'},
             {where:{id:checkOutId}}
@@ -557,6 +591,13 @@ const removeCheckOut = async (req, res, next) => {
 const cancelCheckOut = async (req, res, next) => {
      try {
         const { checkOutId } = req.params;
+        const checkOut = await CheckOut.findOne({
+            attributes:['id','status'],
+            where:{id:checkOutId}
+        });
+        if(checkOut.status !== 'initiated') {
+            return next(new handleError('El registro ya no esta disponible', 'REQUEST_STATE_CHANGED'));
+        }
         await CheckOut.update(
             {
                 status:'canceled',
