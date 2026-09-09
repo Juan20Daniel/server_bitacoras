@@ -50,7 +50,7 @@ const Equipment = sequelizeConfig.define(
             allowNull: true
         },
         inventory_type: {
-            type: DataTypes.ENUM('department','employee'),
+            type: DataTypes.ENUM('department','jop_position'),
             defaultValue: 'department'
         },
         active: {

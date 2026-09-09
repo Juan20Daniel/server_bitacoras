@@ -10,19 +10,18 @@ const ArticleOutputHistory = require('./articleOutputHistory');
 
 const Equipment = require('./equipment');
 const EquipmentFeatures = require('./equipmentFeatures');
-const EquipmentHistory = require('./equipmentHistory');
 
-const StaffEquipment = require('../models/staffEquipment');
+const JopPosition = require('./jopPosition');
 
 const Camp = require('./camps');
+
+const JopPositionEquipment = require('./jopPositionEquipment');
+const JopPositionHistory = require('./jopPositionHistory');
+const EquipmentHistory = require('./equipmentHistory');
 
 //Relation between Camp and Department
 Camp.hasMany(Department, {foreignKey:'camps_id', as:'deparment'});
 Department.belongsTo(Camp, {foreignKey:'camps_id', as:'camp'});
-
-//Relation between Department and User
-Department.hasMany(Staff, {foreignKey:'department_id', as: 'staff'});
-Staff.belongsTo(Department, {foreignKey:'department_id', as:'department'});
 
 //Relation between User and CheckOut
 Staff.hasMany(CheckOut, {foreignKey: 'staff_id', as:'checkOut'});
@@ -56,36 +55,39 @@ ArticleOutputHistory.belongsTo(Staff, {foreignKey:'staff_id', as:'staff'});
 Department.hasMany(Equipment, {foreignKey:'department_id', as:'equipment'});
 Equipment.belongsTo(Department, {foreignKey:'department_id', as:'department'});
 
+//Relation between Department and JopPosition
+Department.hasMany(JopPosition, {foreignKey: 'department_id', as:'jopPosition'});
+JopPosition.belongsTo(Department, {foreignKey: 'department_id', as:'department'});
+
+//Relation between JopPosition and Employee
+JopPosition.hasOne(Staff, {foreignKey:'jop_position_id', as:'staff'});
+Staff.belongsTo(JopPosition, {foreignKey:'jop_position_id', as:'jopPosition'});
+
 //Relation between Equipment and EquipmentFeatures
 Equipment.hasMany(EquipmentFeatures, {foreignKey: 'equipment_id', as:'equipmentFeatures'});
 EquipmentFeatures.belongsTo(Equipment, {foreignKey: 'equipment_id', as:'equipment'});
 
-//Relation between Equipment - StaffEquipment - Staff
-Equipment.belongsToMany(Staff, {
-    through: StaffEquipment,
+Equipment.belongsToMany(JopPosition, {
+    through: JopPositionEquipment,
     foreignKey: 'equipment_id',
-    otherKey: 'staff_id',
-    as: 'staff'
+    otherKey: 'jop_position_id',
+    as: 'jopPosition'
 });
 
-//Para aplicar filtros
-Equipment.belongsToMany(Staff, {
-    through: StaffEquipment,
-    foreignKey: 'equipment_id',
-    otherKey: 'staff_id',
-    as: 'staffFilter',
-});
-
-Staff.belongsToMany(Equipment, {
-    through: StaffEquipment,
-    foreignKey: 'staff_id',
+JopPosition.belongsToMany(Equipment, {
+    through: JopPositionEquipment,
+    foreignKey: 'jop_position_id',
     otherKey: 'equipment_id',
     as: 'equipment'
 });
 
-//Relation between Equipment and EquipmentHistory
-Equipment.hasOne(EquipmentHistory, {foreignKey: 'equipment_id', as:'equipmentHistory'});
-EquipmentHistory.belongsTo(Equipment, {foreignKey: 'equipment_id', as:'equipment'});
+//Relation between JopPosition and JopPositionHistory
+JopPosition.hasMany(JopPositionHistory, {foreignKey:'jop_position_id', as:'jopPositionHistory'});
+JopPositionHistory.belongsTo(JopPosition, {foreignKey:'jop_position_id', as:'jopPosition'});
+
+//Relation between JopPositionHistory and EquipmentHistory
+JopPositionHistory.hasMany(EquipmentHistory, {foreignKey:'jop_position_history_id', as:'equipmentHistory'});
+EquipmentHistory.belongsTo(JopPositionHistory, {foreignKey:'jop_position_history_id', as:'jopPositionHistory'})
 
 module.exports = {
     Article,
@@ -99,6 +101,8 @@ module.exports = {
     CheckOutVehicular,
     Equipment,
     EquipmentFeatures,
-    EquipmentHistory,
-    StaffEquipment
+    JopPosition,
+    JopPositionEquipment,
+    JopPositionHistory,
+    EquipmentHistory
 };

@@ -1,7 +1,7 @@
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { DataTypes } = require('sequelize');
 
-const StaffEquipment = sequelizeConfig.define(
+const JopPositionEquipment = sequelizeConfig.define(
     'staffEquipment',
     {
         id: {
@@ -13,15 +13,15 @@ const StaffEquipment = sequelizeConfig.define(
             type: DataTypes.INTEGER,
             allowNull: false
         },
-        staff_id: {
+        jop_position_id: {
             type: DataTypes.INTEGER,
             allowNull: false
         }
     },
     {
-        tableName: 'staff_equipment',
+        tableName: 'jop_position_equipment',
         timestamps: false
     }
 );
 
-module.exports = StaffEquipment;
+module.exports = JopPositionEquipment;

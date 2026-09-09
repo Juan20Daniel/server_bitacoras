@@ -63,6 +63,7 @@ const regexr = {
     code: /^[a-zA-Z0-9\-]{7,8}$/,
     licensePlate: /^[a-zA-Z0-9\-]{6,10}$/,
     serie: /^[0-9\-]{4,6}$/,
+    jopPositionName: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,100}$/
 }
 
 module.exports = regexr;

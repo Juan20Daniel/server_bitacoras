@@ -1,5 +1,4 @@
 const { Op, fn, col, where } = require('sequelize');
-const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { handleError } = require('../utils/error');
 const { encryptPassword } = require('../utils/password');
 const { normalizeQueryParams } = require('../utils/queryParams');
@@ -142,6 +141,49 @@ const getEmployees = async (req, res, next) => {
     });
   } catch (error) {
     next(new handleError('Error al obtener la lista empleados', "SERVER_ERR"));
+  }
+};
+
+const getEmployeesByDepartment = async (req, res, next) => {
+  try {
+    const { departmentId } = req.params;
+    const employees = await Staff.findAll({
+      attributes:[
+        'id',
+        'firstname',
+        'lastname',
+        'email',
+        'active',
+        'role',
+        'folio',
+        'title'
+      ],
+      include: [
+        {
+          model:Department,
+          attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+          include: [
+            {
+              model:Camp,
+              attributes:['id', 'city', 'school_type', 'active'],
+              as:'camp'
+            }
+          ],
+          as:'department',
+        }
+      ],
+      where: {
+        department_id: departmentId,
+        active: true
+      }
+    });
+   
+    res.status(200).json({
+      message: 'Lista de empleados por departamento',
+      employees: employees
+    });
+  } catch (error) {
+    next(new handleError('Error al obtener la lista empleados por departamento', "SERVER_ERR"));
   }
 };
 
@@ -356,7 +398,7 @@ const getAssetCustodyForm = async (req, res, next) => {
             'active',
             'role', 
             'folio',
-            'title',
+            'title'
           ],
           as: 'staff',
           where: {id:employeeId}
@@ -504,6 +546,7 @@ module.exports = {
   getEmployees,
   getEmployeesNames,
   getEmployeeById,
+  getEmployeesByDepartment,
   getEmployeeHistory,
   getAssetCustodyForm,
   searchEmployee,

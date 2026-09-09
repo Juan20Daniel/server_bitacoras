@@ -73,11 +73,11 @@ const getEquipmentById = async (id) => {
                     'id', 
                     'firstname', 
                     'lastname',
-                    'email', 
+                    'email',
                     'active', 
-                    'role', 
+                    'role',
                     'folio',
-                    'title'
+                    'title',
                 ],
                 as:'staff'
             },
@@ -193,7 +193,7 @@ const equipmentsByEmployee = async (req, res, next) => {
 
         const equipments = await Equipment.findAll({
             attributes: [
-                  'id',
+                'id',
                 'image',
                 'own',
                 'fixed_asset_type',
@@ -210,7 +210,16 @@ const equipmentsByEmployee = async (req, res, next) => {
             include: [
                 {
                     model:Staff,
-                    attributes: ['id', 'firstname', 'lastname','email', 'active', 'role', 'folio'],
+                    attributes: [
+                        'id', 
+                        'firstname', 
+                        'lastname',
+                        'email', 
+                        'active', 
+                        'role', 
+                        'folio', 
+                        'title'
+                    ],
                     as: 'staff',
                     where: {id:employeeId}
                 },
@@ -544,10 +553,10 @@ const searchEquipment = async (req, res, next) => {
             {
                 model:Staff,
                 attributes: [
-                    'id', 
-                    'firstname', 
+                    'id',
+                    'firstname',
                     'lastname',
-                    'email', 
+                    'email',
                     'active',
                     'role',
                     'folio',

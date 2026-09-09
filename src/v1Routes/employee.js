@@ -31,6 +31,13 @@ router.get('/:employeeId',
     employeeController.getEmployeeById
 );
 
+router.get('/by-department-id/:departmentId',
+    auth,
+    authorize(['operator','admin']),
+    validateField('departmentId'),
+    employeeController.getEmployeesByDepartment
+);
+
 router.get('/history/:employeeId',
     auth,
     authorize(['operator','admin']),
@@ -47,7 +54,6 @@ router.get('/assetCustodyForm/:employeeId',
     validateField('employeeId'),
     employeeController.getAssetCustodyForm
 );
-
 
 router.post('/',
     auth,

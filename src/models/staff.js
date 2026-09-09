@@ -41,6 +41,10 @@ const Staff = sequelizeConfig.define(
         title: {
             type: DataTypes.STRING(10),
             allowNull: true,
+        },
+        jop_position_id: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
         }
     },
     {

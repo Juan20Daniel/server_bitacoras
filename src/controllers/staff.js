@@ -1,30 +1,5 @@
-const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { Staff, Department } = require('../models');
-const { encryptPassword } = require('../utils/password');
 const { handleError } = require('../utils/error');
-
-const getById = async (staffId) => {
-  try {
-    const staff = await Staff.findOne({
-      attributes: [
-        'id',
-        'firstname',
-        'lastname',
-        'email',
-        'active',
-        'role',
-        'folio',
-        'title',
-      ],
-      where: {
-        id:staffId
-      }
-    });
-    return staff
-  } catch (error) {
-    throw error;
-  }
-};
 
 const getAll = async (req, res, next) => {
   try {

@@ -15,18 +15,12 @@ const { normalizeQueryParams } = require('../utils/queryParams');
 const {
     createWorkbook,
     createWorksheet,
-    addHeader,
     addBorderAndHeight
 } = require('../utils/excel');
 
 const {
     fromStringDateToUnixDate,
     fromUnixDateToDateFormat,
-    fromDbDateToNormalDate,
-    fromDbDateToUnix,
-    timeUnix,
-    getDaysInMonth,
-    removeHours,
     addUnixDay
 } = require('../utils/time');
 
@@ -385,7 +379,7 @@ const getDepartmentById = async (req, res, next) => {
     try {
         const { departmentId } = req.params;
        
-        const deparment = await Department.findOne({
+        const department = await Department.findOne({
             attributes: ['id','name','inventory_type', 'active'],
             include: [
                 {
@@ -397,7 +391,7 @@ const getDepartmentById = async (req, res, next) => {
             where:{ id:departmentId }
         });
 
-        res.status(200).json({message:'Departamento', deparment});
+        res.status(200).json({message:'Departamento', department});
 
     } catch (error) {
         next(new handleError('Error al obtener el departamento', "SERVER_ERR"));
@@ -553,7 +547,7 @@ const getAssetCustodyForm = async (req, res, next) => {
                         'active',
                         'role', 
                         'folio',
-                        'title',
+                        'title'
                     ],
                     through: {
                         attributes:[]
