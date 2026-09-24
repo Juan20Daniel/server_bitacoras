@@ -3,8 +3,9 @@ const Department = require('../models/department');
 const Camp = require('../models/camps');
 const { handleError } = require('../utils/error');
 const Staff = require('../models/staff');
+const { normalizeQueryParams } = require('../utils/queryParams');
 
-const jopPositionById = async (id) => {
+const jobPositionById = async (id) => {
     return await JopPosition.findOne({
         attributes:['id', 'name', 'active','createdAt','updatedAt'],
         include: [
@@ -25,9 +26,45 @@ const jopPositionById = async (id) => {
     });
 }
 
-const getJopPositionByDepartment = async (req, res, next) => {
+const getJobPositionById = async (req, res, next) => {
+    try {
+        const { jopPositionId } = req.params;
+
+        const jopPosition = await JopPosition.findOne({
+        attributes:['id', 'name', 'active','createdAt','updatedAt'],
+        include: [
+            {
+                model: Department,
+                attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+                include: [
+                    {
+                        model:Camp,
+                        attributes:['id', 'city', 'school_type', 'active'],
+                        as:'camp'
+                    }
+                ],
+                as:'department'
+            }
+        ],
+        where:{id:jopPositionId}
+    });
+    
+    res.status(200).json({
+        message:'Posición de trabajo',
+        jopPosition:jopPosition
+    });
+    } catch (error) {
+        console.log(error);
+        next(new handleError('Error al optener los puestos de trabajo por departamento'))
+    }
+}
+
+
+const getJobPositionsByDepartment = async (req, res, next) => {
     try {
         const { departmentId } = req.params;
+        const page =  normalizeQueryParams(req.query.page);
+        const pageSize = 10;
         const jopPositions = await JopPosition.findAll({
         attributes:['id', 'name', 'active','createdAt','updatedAt'],
         include: [
@@ -37,9 +74,9 @@ const getJopPositionByDepartment = async (req, res, next) => {
                     'id', 
                     'firstname', 
                     'lastname',
-                    'email', 
-                    'active', 
-                    'role', 
+                    'email',
+                    'active',
+                    'role',
                     'folio',
                     'title'
                 ],
@@ -59,14 +96,18 @@ const getJopPositionByDepartment = async (req, res, next) => {
                 as:'department'
             }
         ],
+        limit: pageSize,
+        offset: (page - 1) * pageSize,
         where:{
             department_id:departmentId,
             active: true
         }
     });
     
-     res.status(200).json({
+    res.status(200).json({
         message:'Lista de puestos de trabajo por departamento',
+        pageSize: pageSize,
+        nextPage: page+1,
         jopPositions:jopPositions
     });
     } catch (error) {
@@ -75,7 +116,7 @@ const getJopPositionByDepartment = async (req, res, next) => {
     }
 }
 
-const createJopPosition = async (req, res, next) => {
+const createJobPosition = async (req, res, next) => {
     try {
         const { jopPositionName, departmentId } = req.body;
         const { id } = await JopPosition.create({
@@ -83,7 +124,7 @@ const createJopPosition = async (req, res, next) => {
             department_id:departmentId
         });
 
-        const newJopPosition = await jopPositionById(id);
+        const newJopPosition = await jobPositionById(id);
 
         res.status(201).json({
             message:'Puesto de trabajo creado',
@@ -96,6 +137,7 @@ const createJopPosition = async (req, res, next) => {
 }
 
 module.exports = {
-    getJopPositionByDepartment,
-    createJopPosition,
+    getJobPositionById,
+    getJobPositionsByDepartment,
+    createJobPosition,
 }

@@ -16,6 +16,13 @@ router.get('/by-department/:departmentId',
     equipmentController.equipmentsByDepartment
 );
 
+router.get('/by-job-position/:jobPositionId',
+    auth,
+    authorize(['operator','admin']),
+    validateField('jobPositionId'),
+    equipmentController.equipmentsByJobPosition
+);
+
 router.get('/by-employee/:employeeId',
     auth,
     authorize(['operator','admin']),
@@ -44,7 +51,7 @@ router.post('/',
     validateField('state'),
     validateField('departmentId'),
     validateField('quantity'),
-    validateField('inCharge'),
+    validateField('jobPositionsId'),
     validateField('features', false),
     validateField('observations', false),
     validateField('inventoryType'),
@@ -63,7 +70,7 @@ router.patch('/:equipmentId',
     validateField('model', false),
     validateField('state', false),
     validateField('quantity', false),
-    validateField('inCharge', false),
+    validateField('jopPositionsId', false),
     validateField('features', false),
     validateField('observations', false),
     validateField('equipmentId'),

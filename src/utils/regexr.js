@@ -38,7 +38,7 @@ const regexr = {
     state: /^Nuevo|Regular|Bueno$/,
     departmentId: /^[0-9]{1,}$/,
     quantity: /^[0-9]{1,9}$/,
-    inCharge:/^[0-9,]{1,}$/,
+    jobPositionsId:/^[0-9,]{1,}$/,
     features:/^[0-9.a-zA-ZáÁéÉíÍóÓúÚñÑ, '_-]{3,200}$/,
     observations: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ$#@/=:;'\]\[?¿¡!()" \.,-\_]{5,150}$/,
     monthAndYear: /^[0-9/]{7}$/,
@@ -63,7 +63,8 @@ const regexr = {
     code: /^[a-zA-Z0-9\-]{7,8}$/,
     licensePlate: /^[a-zA-Z0-9\-]{6,10}$/,
     serie: /^[0-9\-]{4,6}$/,
-    jopPositionName: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,100}$/
+    jopPositionName: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,100}$/,
+    jobPositionId: /^[0-9]{1,}$/,
 }
 
 module.exports = regexr;

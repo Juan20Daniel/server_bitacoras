@@ -1,4 +1,4 @@
-const { Equipment, EquipmentFeatures, StaffEquipment, Staff, EquipmentHistory, Department, Camp } = require('../models');
+const { Equipment, JopPosition, EquipmentFeatures, JopPositionEquipment, Staff, Department, Camp } = require('../models');
 const { handleError } = require("../utils/error");
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { moveImg, removeImg } = require('../utils/file');
@@ -22,10 +22,13 @@ const normalizeFeatures = (features, equipmentID) => {
     });
 }
 
-const normalizeInCharge = (inCharge, equipmentID) => {
-    const inChargeArray = inCharge.split(',');
-    return inChargeArray.map(inCharge => {
-        return {equipment_id:equipmentID, staff_id:parseInt(inCharge, 10)}
+const normalizeJopPositionsId = (jopPositionsId, equipmentID) => {
+    const jopPositionsIdArray = jopPositionsId.split(',');
+    return jopPositionsIdArray.map(jopPositionId => {
+        return {
+            equipment_id:equipmentID,
+            jop_position_id:parseInt(jopPositionId, 10)
+        }
     });
 }
 
@@ -68,18 +71,18 @@ const getEquipmentById = async (id) => {
         ],
         include: [
             {
-                model:Staff,
+                model:JopPosition,
                 attributes: [
-                    'id', 
-                    'firstname', 
-                    'lastname',
-                    'email',
-                    'active', 
-                    'role',
-                    'folio',
-                    'title',
+                    'id',
+                    'name',
+                    'active',
+                    'createdAt',
+                    'updatedAt'
                 ],
-                as:'staff'
+                through: {
+                    attributes: []
+                },
+                as:'jopPosition'
             },
             {
                 model:EquipmentFeatures,
@@ -88,11 +91,22 @@ const getEquipmentById = async (id) => {
             },
             {
                 model:Department,
-                attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+                attributes: [
+                    'id',
+                    'name',
+                    'inventory_type',
+                    'createdAt',
+                    'active'
+                ],
                 include: [
                     {
                         model:Camp,
-                        attributes:['id', 'city', 'school_type', 'active'],
+                        attributes:[
+                            'id', 
+                            'city', 
+                            'school_type', 
+                            'active'
+                        ],
                         as:'camp'
                     }
                 ],
@@ -184,6 +198,89 @@ const equipmentsByDepartment = async (req, res, next) => {
     }
 }
 
+const equipmentsByJobPosition = async (req, res, next) => {
+    try {
+        const { jobPositionId } = req.params;
+        const page =  normalizeQueryParams(req.query.page);
+        const pageSize = 10;
+
+        const equipments = await Equipment.findAll({
+            attributes: [
+                'id',
+                'image',
+                'own',
+                'fixed_asset_type',
+                'clasification',
+                'brand',
+                'model',
+                'state',
+                'folio',
+                'quantity',
+                'observations',
+                'createdAt',
+                'active',
+            ],
+            include: [
+                {
+                    model: JopPosition,
+                    as: 'jopPosition',
+                    where: {
+                        id: jobPositionId
+                    },
+                    through: {
+                        attributes: []
+                    },
+                    required: true
+                },
+                {
+                    model:EquipmentFeatures,
+                    attributes: ['id', 'description'],
+                    as: 'equipmentFeatures'
+                },
+                {
+                    model:Department,
+                    attributes: [
+                        'id',
+                        'name',
+                        'inventory_type',
+                        'createdAt',
+                        'active'
+                    ],
+                    include: [
+                        {
+                            model:Camp,
+                            attributes:[
+                                'id', 
+                                'city', 
+                                'school_type', 
+                                'active'
+                            ],
+                            as:'camp'
+                        }
+                    ],
+                    as:'department'
+                }
+            ],
+            limit: pageSize,
+            offset: (page - 1) * pageSize,
+            where:{
+                inventory_type:'department',
+                active: true
+            }
+        });
+
+        res.status(201).json({
+            message: 'Lista de equipos por posición',
+            pageSize: pageSize,
+            nextPage: page+1,
+            equipments: equipments,
+        });
+    } catch (error) {
+        console.log(error);
+        next(new handleError('Error al obtener los equipos por posición', "SERVER_ERR"));
+    }
+}
+
 
 const equipmentsByEmployee = async (req, res, next) => {
     try {
@@ -271,7 +368,7 @@ const addEquipment = async (req, res, next) => {
             state,
             departmentId,
             quantity,
-            inCharge,
+            jopPositionsId,
             features,
             observations,
             inventoryType
@@ -300,11 +397,6 @@ const addEquipment = async (req, res, next) => {
                 {transaction}
             );
 
-            await EquipmentHistory.create(
-                {equipment_id:equipmentAdded.id},
-                {transaction}
-            );
-
             const featuresNormalized = normalizeFeatures(features, equipmentAdded.id);
            
             if(featuresNormalized.lenght !== 0) {
@@ -314,10 +406,10 @@ const addEquipment = async (req, res, next) => {
                 );
             }
             
-            const inChargeNormalized = normalizeInCharge(inCharge, equipmentAdded.id);
+            const jopPositionsIdNormalized = normalizeJopPositionsId(jopPositionsId, equipmentAdded.id);
             
-            await StaffEquipment.bulkCreate(
-                inChargeNormalized,
+            await JopPositionEquipment.bulkCreate(
+                jopPositionsIdNormalized,
                 {transaction}
             );
             return equipmentAdded;
@@ -627,6 +719,7 @@ const searchEquipment = async (req, res, next) => {
 module.exports = {
     addEquipment,
     equipmentsByDepartment,
+    equipmentsByJobPosition,
     equipmentsByEmployee,
     edithEquipment,
     inactiveEquipment,
