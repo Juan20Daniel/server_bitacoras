@@ -25,6 +25,7 @@ const validateField = (field, required=true) => {
             if(req.file) removeImg(req.file.filename);
             return next(new handleError('Error de validación '+field, 'VALIDATION_ERR'));
         }
+        
         if(!regexr[field].test(searchResult)) {
             if(req.file) removeImg(req.file.filename);
             return next(new handleError('Error de validación '+field, 'VALIDATION_ERR'));

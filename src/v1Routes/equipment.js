@@ -9,19 +9,16 @@ const {
     validateField,
 } = require('../middlewares');
 
+
 router.get('/by-department/:departmentId',
     auth,
     authorize(['operator','admin']),
     validateField('departmentId'),
+    validateField('jobPositionId', false),
+    validateField('inventoryType'),
     equipmentController.equipmentsByDepartment
 );
 
-router.get('/by-job-position/:jobPositionId',
-    auth,
-    authorize(['operator','admin']),
-    validateField('jobPositionId'),
-    equipmentController.equipmentsByJobPosition
-);
 
 router.get('/by-employee/:employeeId',
     auth,

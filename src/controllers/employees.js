@@ -55,24 +55,6 @@ const getEmployeeById = async (req, res, next) => {
   }
 };
 
-
-const getEmployeesNames = async (req, res, next) => {
-  try {
-    const employeesNames = await Staff.findAll({
-      attributes:['id', 'firstname', 'lastname'],
-      where: {active:true}
-    });
-    
-    res.status(200).json({
-      message:'Lista de nombres de empleados',
-      employeesNames
-    });
-  } catch (error) {
-    next(new handleError('Error al obtener la lista nombres de empleados', "SERVER_ERR"));
-  }
-};
-
-
 const getEmployees = async (req, res, next) => {
   try {
     const page = normalizeQueryParams(req.query.page);
@@ -544,7 +526,6 @@ const toggleEmployee = async (req, res, next) => {
 
 module.exports = {
   getEmployees,
-  getEmployeesNames,
   getEmployeeById,
   getEmployeesByDepartment,
   getEmployeeHistory,

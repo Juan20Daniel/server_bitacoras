@@ -42,7 +42,7 @@ const regexr = {
     features:/^[0-9.a-zA-ZáÁéÉíÍóÓúÚñÑ, '_-]{3,200}$/,
     observations: /^[0-9A-Za-záÁéÉíÍóÓúÚñÑ$#@/=:;'\]\[?¿¡!()" \.,-\_]{5,150}$/,
     monthAndYear: /^[0-9/]{7}$/,
-    inventoryType:/^department|employee$/,
+    inventoryType:/^department|jop_position$/,
     role:/^basic|rrhh|operator|admin$/,
     departmentInventoryType:/^static|variable$/,
     offset:/^[0-9]{1,}$/,

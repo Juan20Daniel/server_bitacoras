@@ -11,12 +11,6 @@ router.get('/',
     employeeController.getEmployees
 );
 
-router.get('/names',
-    auth,
-    authorize(['operator','admin']),
-    employeeController.getEmployeesNames
-);
-
 router.get('/search',
     auth,
     authorize(['operator','admin']),

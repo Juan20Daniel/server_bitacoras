@@ -59,6 +59,21 @@ const getJobPositionById = async (req, res, next) => {
     }
 }
 
+const getJopPositionsNames = async (req, res, next) => {
+    try {
+        const jopPositionsNames = await JopPosition.findAll({
+            attributes:['id', 'name'],
+            where: {active:true}
+        });
+    
+        res.status(200).json({
+            message:'Lista de nombres de positiones de trabajo',
+            jopPositionsNames
+        });
+    } catch (error) {
+        next(new handleError('Error al obtener la lista nombres de puestos de trabajo', "SERVER_ERR"));
+    }
+};
 
 const getJobPositionsByDepartment = async (req, res, next) => {
     try {
@@ -137,6 +152,7 @@ const createJobPosition = async (req, res, next) => {
 }
 
 module.exports = {
+    getJopPositionsNames,
     getJobPositionById,
     getJobPositionsByDepartment,
     createJobPosition,

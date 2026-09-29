@@ -23,6 +23,7 @@ const normalizeFeatures = (features, equipmentID) => {
 }
 
 const normalizeJopPositionsId = (jopPositionsId, equipmentID) => {
+    console.log({jopPositionsId})
     const jopPositionsIdArray = jopPositionsId.split(',');
     return jopPositionsIdArray.map(jopPositionId => {
         return {
@@ -122,87 +123,17 @@ const getEquipmentById = async (id) => {
     return equipment;
 }
 
-
 const equipmentsByDepartment = async (req, res, next) => {
     try {
         const { departmentId } = req.params;
+        const inventoryType = req.query.inventoryType??'department';
         const page =  normalizeQueryParams(req.query.page);
         const pageSize = 10;
+        let whereJobPosition = {}
 
-        const equipments = await Equipment.findAll({
-            attributes: [
-                'id',
-                'image',
-                'own',
-                'fixed_asset_type',
-                'clasification',
-                'brand',
-                'model',
-                'state',
-                'folio',
-                'quantity',
-                'observations',
-                'createdAt',
-                'active',
-            ],
-            include: [
-                {
-                    model:Staff,
-                    attributes: [
-                        'id', 
-                        'firstname', 
-                        'lastname',
-                        'email', 
-                        'active', 
-                        'role', 
-                        'folio',
-                        'title'
-                    ],
-                    as: 'staff'
-                },
-                {
-                    model:EquipmentFeatures,
-                    attributes: ['id', 'description'],
-                    as: 'equipmentFeatures'
-                },
-                {
-                    model:Department,
-                    attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
-                    include: [
-                        {
-                            model:Camp,
-                            attributes:['id', 'city', 'school_type', 'active'],
-                            as:'camp'
-                        }
-                    ],
-                    as:'department'
-                }
-            ],
-            limit: pageSize,
-            offset: (page - 1) * pageSize,
-            where: {
-                department_id:departmentId,
-                inventory_type:'department',
-                active:true
-            }
-        });
-        
-        res.status(201).json({
-            message: 'Lista de equipos',
-            pageSize: pageSize,
-            nextPage: page+1,
-            equipments: equipments,
-        });
-    } catch (error) {
-        next(new handleError('Error al obtener los equipos', "SERVER_ERR"));
-    }
-}
-
-const equipmentsByJobPosition = async (req, res, next) => {
-    try {
-        const { jobPositionId } = req.params;
-        const page =  normalizeQueryParams(req.query.page);
-        const pageSize = 10;
+        if(req.query.jobPositionId) {
+            whereJobPosition.id = normalizeQueryParams(req.query.jobPositionId);
+        }
 
         const equipments = await Equipment.findAll({
             attributes: [
@@ -224,9 +155,7 @@ const equipmentsByJobPosition = async (req, res, next) => {
                 {
                     model: JopPosition,
                     as: 'jopPosition',
-                    where: {
-                        id: jobPositionId
-                    },
+                    where: whereJobPosition,
                     through: {
                         attributes: []
                     },
@@ -264,7 +193,8 @@ const equipmentsByJobPosition = async (req, res, next) => {
             limit: pageSize,
             offset: (page - 1) * pageSize,
             where:{
-                inventory_type:'department',
+                department_id: departmentId,
+                inventory_type:inventoryType,
                 active: true
             }
         });
@@ -341,6 +271,7 @@ const equipmentsByEmployee = async (req, res, next) => {
             limit: pageSize,
             offset: (page - 1) * pageSize,
             where: {
+                
                 inventory_type:'employee',
                 active:true
             }
@@ -368,11 +299,14 @@ const addEquipment = async (req, res, next) => {
             state,
             departmentId,
             quantity,
-            jopPositionsId,
+            jobPositionsId,
             features,
             observations,
             inventoryType
         } = req.body;
+
+        
+
         let image = null;
         if(req.file) {
             image = req.file.filename;
@@ -406,7 +340,7 @@ const addEquipment = async (req, res, next) => {
                 );
             }
             
-            const jopPositionsIdNormalized = normalizeJopPositionsId(jopPositionsId, equipmentAdded.id);
+            const jopPositionsIdNormalized = normalizeJopPositionsId(jobPositionsId, equipmentAdded.id);
             
             await JopPositionEquipment.bulkCreate(
                 jopPositionsIdNormalized,
@@ -719,7 +653,6 @@ const searchEquipment = async (req, res, next) => {
 module.exports = {
     addEquipment,
     equipmentsByDepartment,
-    equipmentsByJobPosition,
     equipmentsByEmployee,
     edithEquipment,
     inactiveEquipment,

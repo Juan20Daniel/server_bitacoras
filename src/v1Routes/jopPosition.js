@@ -3,7 +3,13 @@ const router = express.Router();
 const jobPositionController = require('../controllers/jobPosition');
 const { auth, authorize, validateField } = require('../middlewares');
 
-router.get('/:jopPositionId', 
+router.get('/names',
+    auth,
+    authorize(['operator','admin']),
+    jobPositionController.getJopPositionsNames
+);
+
+router.get('/:jopPositionId',
     auth,
     authorize(['admin']), 
     validateField('jopPositionId'),
