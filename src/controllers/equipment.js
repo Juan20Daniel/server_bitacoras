@@ -68,6 +68,7 @@ const getEquipmentById = async (id) => {
             'quantity',
             'observations',
             'createdAt',
+            'inventory_type',
             'active',
         ],
         include: [
@@ -304,8 +305,6 @@ const addEquipment = async (req, res, next) => {
             observations,
             inventoryType
         } = req.body;
-
-        
 
         let image = null;
         if(req.file) {

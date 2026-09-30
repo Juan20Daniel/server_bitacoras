@@ -9,10 +9,10 @@ router.get('/names',
     jobPositionController.getJopPositionsNames
 );
 
-router.get('/:jopPositionId',
+router.get('/:jobPositionId',
     auth,
     authorize(['admin']), 
-    validateField('jopPositionId'),
+    validateField('jobPositionId'),
     jobPositionController.getJobPositionById
 );
 

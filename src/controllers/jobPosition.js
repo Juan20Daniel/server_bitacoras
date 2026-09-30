@@ -28,14 +28,34 @@ const jobPositionById = async (id) => {
 
 const getJobPositionById = async (req, res, next) => {
     try {
-        const { jopPositionId } = req.params;
+        const { jobPositionId } = req.params;
 
-        const jopPosition = await JopPosition.findOne({
+        const jobPosition = await JopPosition.findOne({
         attributes:['id', 'name', 'active','createdAt','updatedAt'],
         include: [
             {
+                model: Staff,
+                attributes: [
+                    'id', 
+                    'firstname', 
+                    'lastname',
+                    'email',
+                    'active',
+                    'role',
+                    'folio',
+                    'title'
+                ],
+                as: 'staff',
+            },
+            {
                 model: Department,
-                attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+                attributes: [
+                    'id',
+                    'name', 
+                    'inventory_type', 
+                    'createdAt',
+                    'active'
+                ],
                 include: [
                     {
                         model:Camp,
@@ -46,12 +66,12 @@ const getJobPositionById = async (req, res, next) => {
                 as:'department'
             }
         ],
-        where:{id:jopPositionId}
+        where:{id:jobPositionId}
     });
     
     res.status(200).json({
         message:'Posición de trabajo',
-        jopPosition:jopPosition
+        jopPosition:jobPosition
     });
     } catch (error) {
         console.log(error);
