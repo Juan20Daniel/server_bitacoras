@@ -2,7 +2,7 @@ const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { DataTypes } = require('sequelize');
 
 const JopPositionEquipment = sequelizeConfig.define(
-    'staffEquipment',
+    'jopPositionEquipment',
     {
         id: {
             type: DataTypes.INTEGER,

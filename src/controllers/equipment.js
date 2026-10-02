@@ -155,12 +155,17 @@ const equipmentsByDepartment = async (req, res, next) => {
             include: [
                 {
                     model: JopPosition,
-                    as: 'jopPosition',
+                    attributes: [],
+                    as: 'jopPositionfilter',
                     where: whereJobPosition,
-                    through: {
-                        attributes: []
-                    },
+                    through: {attributes: []},
                     required: true
+                },
+                {
+                    model: JopPosition,
+                    as: 'jopPosition',
+                    through: {attributes: []},
+                    required: false
                 },
                 {
                     model:EquipmentFeatures,
@@ -195,7 +200,7 @@ const equipmentsByDepartment = async (req, res, next) => {
             offset: (page - 1) * pageSize,
             where:{
                 department_id: departmentId,
-                inventory_type:inventoryType,
+                inventory_type: inventoryType,
                 active: true
             }
         });

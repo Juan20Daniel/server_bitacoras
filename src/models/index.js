@@ -73,6 +73,13 @@ Equipment.belongsToMany(JopPosition, {
     otherKey: 'jop_position_id',
     as: 'jopPosition'
 });
+// Solo para uso de filtros, es totalmente requerido
+Equipment.belongsToMany(JopPosition, {
+    through: JopPositionEquipment,
+    foreignKey: 'equipment_id',
+    otherKey: 'jop_position_id',
+    as: 'jopPositionfilter'
+});
 
 JopPosition.belongsToMany(Equipment, {
     through: JopPositionEquipment,
