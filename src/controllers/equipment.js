@@ -375,7 +375,7 @@ const processUpdateInCharges = (inCharge, currentEquipment) => {
         inChargesToRemove:[]
     }
     const inChargesId = inCharge.split(',')
-    const currentInCharges = currentEquipment.staff;
+    const currentInCharges = currentEquipment.jopPosition;
 
     const newInCharges = [];
     const inChargesToRemove = [];
@@ -386,7 +386,7 @@ const processUpdateInCharges = (inCharge, currentEquipment) => {
             return inCharge.id === inChargeId;
         });
         if(!exists) {
-            newInCharges.push({equipment_id:currentEquipment.id, staff_id:inChargeId});
+            newInCharges.push({equipment_id:currentEquipment.id, jop_position_id:inChargeId});
         }
     });
 
@@ -495,17 +495,17 @@ const edithEquipment = async (req, res, next) => {
                 }
             );
 
-            const {newInCharges, inChargesToRemove} = processUpdateInCharges(req.body.inCharge, currentEquipment);
+            const {newInCharges, inChargesToRemove} = processUpdateInCharges(req.body.jobPositionsId, currentEquipment);
        
             if(inChargesToRemove.length) {
-                await StaffEquipment.destroy(
+                await JopPositionEquipment.destroy(
                     {where:{id:inChargesToRemove}},
                     {transaction}
                 );
             }
 
             if(newInCharges.length) {
-                await StaffEquipment.bulkCreate(
+                await JopPositionEquipment.bulkCreate(
                     newInCharges,
                     {transaction}
                 );
