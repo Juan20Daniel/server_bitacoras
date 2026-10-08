@@ -3,7 +3,7 @@ const { handleError } = require("../utils/error");
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 const { moveImg, removeImg } = require('../utils/file');
 const { normalizeQueryParams } = require('../utils/queryParams');
-const { Op } = require('sequelize');
+const { Op, where } = require('sequelize');
 
 const normalizeNumFolio = (folio) => {
     let numFolio = folio.replace('E-','');
@@ -81,9 +81,6 @@ const getEquipmentById = async (id) => {
                     'createdAt',
                     'updatedAt'
                 ],
-                through: {
-                    attributes: []
-                },
                 as:'jopPosition'
             },
             {
@@ -389,16 +386,14 @@ const processUpdateInCharges = (inCharge, currentEquipment) => {
             newInCharges.push({equipment_id:currentEquipment.id, jop_position_id:inChargeId});
         }
     });
-
     currentInCharges.forEach(inCharge => {
         const exists = inChargesId.find(inChargeId => {
             return Number(inChargeId) === inCharge.id;
         });
         if(!exists) {
-            inChargesToRemove.push(inCharge.staffEquipment.id);
+            inChargesToRemove.push(inCharge.jopPositionEquipment.id);
         }
     });
-
     return {
         newInCharges,
         inChargesToRemove
@@ -484,7 +479,7 @@ const edithEquipment = async (req, res, next) => {
         }
         if(!req.file && req.body.removeImage === 'true') {
             data.image = null;
-        } 
+        }
         await sequelizeConfig.transaction(async (transaction) => {
 
             await Equipment.update(
@@ -499,8 +494,10 @@ const edithEquipment = async (req, res, next) => {
        
             if(inChargesToRemove.length) {
                 await JopPositionEquipment.destroy(
-                    {where:{id:inChargesToRemove}},
-                    {transaction}
+                    {
+                        where:{id:inChargesToRemove},
+                        transaction
+                    },
                 );
             }
 
@@ -515,8 +512,10 @@ const edithEquipment = async (req, res, next) => {
         
             if(featuresToRemove.length) {
                 await EquipmentFeatures.destroy(
-                    {where:{id:featuresToRemove}},
-                    {transaction}
+                    {
+                        where:{id:featuresToRemove},
+                        transaction
+                    },
                 );
             }
 
@@ -539,6 +538,7 @@ const edithEquipment = async (req, res, next) => {
             equipment:equipmentUpdated
         });
     } catch (error) {
+        console.log(error);
         if(req.file) await removeImg(req.file.filename);
         next(new handleError('Error al editar el equipo', "SERVER_ERR"));
     }
@@ -547,16 +547,64 @@ const edithEquipment = async (req, res, next) => {
 const inactiveEquipment = async (req, res, next) => {
     try {
         const { equipmentId } = req.params;
-        
-        await Equipment.update(
-            {active:false},
-            {where:{id:equipmentId}}
-        );
+        const { jobPositionId } = req.query;
+      
+        const equipment = await Equipment.findOne({
+            attributes: ['id'],
+            include: [
+                {
+                    model: JopPosition,
+                    attributes: [],
+                    as: 'jopPositionfilter',
+                    where: {id:+jobPositionId},
+                    through: {attributes: []},
+                    required: true
+                },
+                {
+                    model: JopPosition,
+                    as: 'jopPosition',
+                    attributes:['id','name'],
+                  
+                    required: false
+                }
+            ],
+            where: {
+                id: equipmentId,
+                active: true
+            }
+        });
+        console.log(equipment)
+        if(!equipment) {
+            throw new Error('El equipo no se encuentra')
+        }
+       
+        const jobPosition = equipment.jopPosition.find(jobPosition => {
+            return jobPosition.id === +jobPositionId;
+        });
+
+        await sequelizeConfig.transaction( async (transaction) => {
+            await JopPositionEquipment.destroy({
+                where: {id:jobPosition.jopPositionEquipment.id},
+                transaction
+            });
+           
+            if(equipment.jopPosition.length === 1) {
+                await Equipment.update(
+                    {active:false},
+                    {
+                        where: {id:equipmentId},
+                        transaction
+                    }
+                );
+            }
+        });
 
         res.status(201).json({
-            message: 'Equipo inactivado',
+            message: 'Equipo removido',
+            equipment
         });
     } catch (error) {
+        console.log(error);
         next(new handleError('Error al inctivar el equipo', "SERVER_ERR"));
     }
 }

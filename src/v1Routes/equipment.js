@@ -79,6 +79,7 @@ router.delete('/:equipmentId',
     auth,
     authorize(['operator','admin']),
     validateField('equipmentId'),
+    validateField('jobPositionId'),
     equipmentController.inactiveEquipment
 );
 
