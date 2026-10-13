@@ -26,11 +26,11 @@ router.get('/history/:departmentId',
     departmentController.getDepartmentHistory
 );
 
-router.get('/assetCustodyForm/:departmentId/:employeeId',
+router.get('/assetCustodyForm/:departmentId',
     auth,
     authorize(['operator','admin']),
-    validateField('departmentId'),  
-    validateField('employeeId'),    
+    validateField('departmentId'),
+    validateField('jobPositionId'),
     departmentController.getAssetCustodyForm
 );
 

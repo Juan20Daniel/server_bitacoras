@@ -4,6 +4,7 @@ const {
     Department,
     Equipment,
     Staff,
+    JopPosition,
     EquipmentFeatures,
     EquipmentHistory,
     ArticleEntryHistory,
@@ -508,7 +509,13 @@ const getDepartmentHistory = async (req, res, next) => {
 
 const getAssetCustodyForm = async (req, res, next) => {
     try {
-        const { departmentId, employeeId } = req.params;
+        const { departmentId } = req.params;
+        let whereJobPosition = {}
+
+        if(!req.query.jobPositionId) {
+            next(new handleError('El jobPositionId es requerido', "SERVER_ERR"));
+        }
+        whereJobPosition.id = normalizeQueryParams(req.query.jobPositionId);
 
         const equipments = await Equipment.findAll({
             attributes: [
@@ -528,31 +535,18 @@ const getAssetCustodyForm = async (req, res, next) => {
             ],
             include: [
                 {
-                    model: Staff,
-                    as: 'staffFilter',
+                    model: JopPosition,
                     attributes: [],
-                    through: {
-                        attributes: []
-                    },
-                    where: {id:employeeId},
+                    as: 'jopPositionfilter',
+                    where: whereJobPosition,
+                    through: {attributes: []},
                     required: true
                 },
                 {
-                    model: Staff,
-                    attributes: [
-                        'id',
-                        'firstname',
-                        'lastname',
-                        'email',
-                        'active',
-                        'role', 
-                        'folio',
-                        'title'
-                    ],
-                    through: {
-                        attributes:[]
-                    },
-                    as: 'staff',
+                    model: JopPosition,
+                    as: 'jopPosition',
+                    through: {attributes: []},
+                    required: false
                 },
                 {
                     model:EquipmentFeatures,
@@ -561,12 +555,18 @@ const getAssetCustodyForm = async (req, res, next) => {
                 },
                 {
                     model:Department,
-                    attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
+                    attributes: [
+                        'id',
+                        'name',
+                        'inventory_type',
+                        'createdAt',
+                        'active'
+                    ],
                     include: [
                         {
-                        model:Camp,
-                        attributes:['id', 'city', 'school_type', 'active'],
-                        as:'camp'
+                            model:Camp,
+                            attributes:['id', 'city', 'school_type', 'active'],
+                            as:'camp'
                         }
                     ],
                     as:'department'

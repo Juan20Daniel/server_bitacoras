@@ -214,83 +214,6 @@ const equipmentsByDepartment = async (req, res, next) => {
     }
 }
 
-
-const equipmentsByEmployee = async (req, res, next) => {
-    try {
-        const { employeeId } = req.params;
-        const page =  normalizeQueryParams(req.query.page);
-        const pageSize = 10;
-
-        const equipments = await Equipment.findAll({
-            attributes: [
-                'id',
-                'image',
-                'own',
-                'fixed_asset_type',
-                'clasification',
-                'brand',
-                'model',
-                'state',
-                'folio',
-                'quantity',
-                'observations',
-                'createdAt',
-                'active',
-            ],
-            include: [
-                {
-                    model:Staff,
-                    attributes: [
-                        'id', 
-                        'firstname', 
-                        'lastname',
-                        'email', 
-                        'active', 
-                        'role', 
-                        'folio', 
-                        'title'
-                    ],
-                    as: 'staff',
-                    where: {id:employeeId}
-                },
-                {
-                    model:EquipmentFeatures,
-                    attributes: ['id', 'description'],
-                    as: 'equipmentFeatures'
-                },
-                {
-                    model:Department,
-                    attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
-                    include: [
-                        {
-                            model:Camp,
-                            attributes:['id', 'city', 'school_type', 'active'],
-                            as:'camp'
-                        }
-                    ],
-                    as:'department'
-                }
-            ],
-            limit: pageSize,
-            offset: (page - 1) * pageSize,
-            where: {
-                
-                inventory_type:'employee',
-                active:true
-            }
-        });
-        
-        res.status(201).json({
-            message: 'Lista de equipos',
-            pageSize: pageSize,
-            nextPage: page+1,
-            equipments: equipments,
-        });
-    } catch (error) {
-        next(new handleError('Error al obtener los equipos', "SERVER_ERR"));
-    }
-}
-
 const addEquipment = async (req, res, next) => {
     try {
         const {
@@ -550,7 +473,7 @@ const inactiveEquipment = async (req, res, next) => {
         const { jobPositionId } = req.query;
       
         const equipment = await Equipment.findOne({
-            attributes: ['id'],
+            attributes: ['id','inventory_type'],
             include: [
                 {
                     model: JopPosition,
@@ -573,7 +496,7 @@ const inactiveEquipment = async (req, res, next) => {
                 active: true
             }
         });
-        console.log(equipment)
+        
         if(!equipment) {
             throw new Error('El equipo no se encuentra')
         }
@@ -601,7 +524,10 @@ const inactiveEquipment = async (req, res, next) => {
 
         res.status(201).json({
             message: 'Equipo removido',
-            equipment
+            equipment: {
+                id: equipment.id,
+                inventoryType: equipment.inventory_type,
+            }
         });
     } catch (error) {
         console.log(error);
@@ -705,7 +631,6 @@ const searchEquipment = async (req, res, next) => {
 module.exports = {
     addEquipment,
     equipmentsByDepartment,
-    equipmentsByEmployee,
     edithEquipment,
     inactiveEquipment,
     searchEquipment

@@ -19,14 +19,6 @@ router.get('/by-department/:departmentId',
     equipmentController.equipmentsByDepartment
 );
 
-
-router.get('/by-employee/:employeeId',
-    auth,
-    authorize(['operator','admin']),
-    validateField('employeeId'),
-    equipmentController.equipmentsByEmployee
-);
-
 router.get('/search',
     auth,
     authorize(['operator','admin']),
