@@ -4,6 +4,7 @@ const Camp = require('../models/camps');
 const { handleError } = require('../utils/error');
 const Staff = require('../models/staff');
 const { normalizeQueryParams } = require('../utils/queryParams');
+const { Equipment, EquipmentFeatures } = require('../models');
 
 const jobPositionById = async (id) => {
     return await JopPosition.findOne({
@@ -151,6 +152,88 @@ const getJobPositionsByDepartment = async (req, res, next) => {
     }
 }
 
+
+const getAssetCustodyForm = async (req, res, next) => {
+    try {
+        const { departmentId } = req.params;
+        let whereJobPosition = {}
+
+        if(!req.query.jobPositionId) {
+            next(new handleError('El jobPositionId es requerido', "SERVER_ERR"));
+        }
+        whereJobPosition.id = normalizeQueryParams(req.query.jobPositionId);
+
+        const equipments = await Equipment.findAll({
+            attributes: [
+                'id',
+                'image',
+                'own',
+                'fixed_asset_type',
+                'clasification',
+                'brand',
+                'model',
+                'state',
+                'folio',
+                'quantity',
+                'observations',
+                'createdAt',
+                'active',
+            ],
+            include: [
+                {
+                    model: JopPosition,
+                    attributes: [],
+                    as: 'jopPositionfilter',
+                    where: whereJobPosition,
+                    through: {attributes: []},
+                    required: true
+                },
+                {
+                    model: JopPosition,
+                    as: 'jopPosition',
+                    through: {attributes: []},
+                    required: false
+                },
+                {
+                    model:EquipmentFeatures,
+                    attributes: ['id', 'description'],
+                    as: 'equipmentFeatures'
+                },
+                {
+                    model:Department,
+                    attributes: [
+                        'id',
+                        'name',
+                        'inventory_type',
+                        'createdAt',
+                        'active'
+                    ],
+                    include: [
+                        {
+                            model:Camp,
+                            attributes:['id', 'city', 'school_type', 'active'],
+                            as:'camp'
+                        }
+                    ],
+                    as:'department'
+                }
+            ],
+            where: {
+                inventory_type: 'jop_position',
+                department_id: departmentId,
+                active: true
+            }
+        });
+    
+        res.status(201).json({
+            message: 'Lista de equipos',
+            equipments: equipments,
+        });
+    } catch (error) {
+        next(new handleError('Error al obtener los equipos', "SERVER_ERR"));
+    }
+}
+
 const createJobPosition = async (req, res, next) => {
     try {
         const { jopPositionName, departmentId } = req.body;
@@ -175,5 +258,6 @@ module.exports = {
     getJopPositionsNames,
     getJobPositionById,
     getJobPositionsByDepartment,
+    getAssetCustodyForm,
     createJobPosition,
 }

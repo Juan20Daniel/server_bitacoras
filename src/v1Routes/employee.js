@@ -42,13 +42,6 @@ router.get('/history/:employeeId',
     employeeController.getEmployeeHistory
 );
 
-router.get('/assetCustodyForm/:employeeId',
-    auth,
-    authorize(['operator','admin']),
-    validateField('employeeId'),
-    employeeController.getAssetCustodyForm
-);
-
 router.post('/',
     auth,
     authorize(['admin']),

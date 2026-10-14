@@ -23,6 +23,14 @@ router.get('/by-department/:departmentId',
     jobPositionController.getJobPositionsByDepartment
 );
 
+router.get('/assetCustodyForm/:departmentId',
+    auth,
+    authorize(['operator','admin']),
+    validateField('departmentId'),
+    validateField('jobPositionId'),
+    jobPositionController.getAssetCustodyForm
+);
+
 router.post('/', 
     auth,
     authorize(['admin']), 

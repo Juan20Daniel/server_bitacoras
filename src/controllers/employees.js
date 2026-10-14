@@ -349,76 +349,6 @@ const getEmployeeHistory = async (req, res, next) => {
   }
 }
 
-const getAssetCustodyForm = async (req, res, next) => {
-  try {
-    const { employeeId } = req.params;
-    
-    const equipments = await Equipment.findAll({
-      attributes: [
-        'id',
-        'image',
-        'own',
-        'fixed_asset_type',
-        'clasification',
-        'brand',
-        'model',
-        'state',
-        'folio',
-        'quantity',
-        'observations',
-        'createdAt',
-        'active',
-      ],
-      include: [
-        {
-          model:Staff,
-          attributes: [
-            'id',
-            'firstname',
-            'lastname',
-            'email',
-            'active',
-            'role', 
-            'folio',
-            'title'
-          ],
-          as: 'staff',
-          where: {id:employeeId}
-        },
-        {
-          model:EquipmentFeatures,
-          attributes: ['id', 'description'],
-          as: 'equipmentFeatures'
-        },
-        {
-          model:Department,
-          attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
-          include: [
-            {
-              model:Camp,
-              attributes:['id', 'city', 'school_type', 'active'],
-              as:'camp'
-            }
-          ],
-          as:'department'
-        }
-      ],
-      where: {
-        inventory_type:'employee',
-        active:true
-      }
-    });
-    
-    res.status(201).json({
-      message: 'Lista de equipos',
-      equipments: equipments,
-    });
-  } catch (error) {
-    console.log(error);
-    next(new handleError('Error al obtener los equipos', "SERVER_ERR"));
-  }
-}
-
 const createEmployee = async (req, res, next) => {
   try {
     const {
@@ -529,7 +459,6 @@ module.exports = {
   getEmployeeById,
   getEmployeesByDepartment,
   getEmployeeHistory,
-  getAssetCustodyForm,
   searchEmployee,
   createEmployee,
   editEmployee,
