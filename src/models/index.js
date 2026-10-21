@@ -10,6 +10,7 @@ const ArticleOutputHistory = require('./articleOutputHistory');
 
 const Equipment = require('./equipment');
 const EquipmentFeatures = require('./equipmentFeatures');
+const EquipmentHistoryFeatures = require('./equipmentHistoryFeatures');
 
 const JopPosition = require('./jopPosition');
 
@@ -18,6 +19,7 @@ const Camp = require('./camps');
 const JopPositionEquipment = require('./jopPositionEquipment');
 const JopPositionHistory = require('./jopPositionHistory');
 const EquipmentHistory = require('./equipmentHistory');
+
 
 //Relation between Camp and Department
 Camp.hasMany(Department, {foreignKey:'camps_id', as:'deparment'});
@@ -96,6 +98,9 @@ JopPositionHistory.belongsTo(JopPosition, {foreignKey:'jop_position_id', as:'jop
 JopPositionHistory.hasMany(EquipmentHistory, {foreignKey:'jop_position_history_id', as:'equipmentHistory'});
 EquipmentHistory.belongsTo(JopPositionHistory, {foreignKey:'jop_position_history_id', as:'jopPositionHistory'})
 
+EquipmentHistory.hasMany(EquipmentHistoryFeatures, {foreignKey:'equipment_history_id', as:'equipmentHistoryFeatures'});
+EquipmentHistoryFeatures.belongsTo(EquipmentHistory, {foreignKey:'equipment_history_id', as:'equipmentHistory'});
+
 module.exports = {
     Article,
     ArticleEntryHistory,
@@ -110,6 +115,7 @@ module.exports = {
     EquipmentFeatures,
     JopPosition,
     JopPositionEquipment,
+    EquipmentHistoryFeatures,
     JopPositionHistory,
     EquipmentHistory
 };

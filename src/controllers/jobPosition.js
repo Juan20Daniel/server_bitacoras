@@ -1,10 +1,15 @@
-const JopPosition = require('../models/jopPosition');
-const Department = require('../models/department');
-const Camp = require('../models/camps');
 const { handleError } = require('../utils/error');
-const Staff = require('../models/staff');
 const { normalizeQueryParams } = require('../utils/queryParams');
-const { Equipment, EquipmentFeatures } = require('../models');
+const { sequelizeConfig } = require('../database/sequelizeConfig');
+const { 
+    Equipment,
+    EquipmentFeatures,
+    Department,
+    Staff,
+    Camp,
+    JopPosition,
+    JopPositionHistory
+} = require('../models');
 
 const jobPositionById = async (id) => {
     return await JopPosition.findOne({
@@ -254,10 +259,102 @@ const createJobPosition = async (req, res, next) => {
     }
 }
 
+const vacatePosition = async (req, res, next) => {
+    try {
+        const { jobPositionId } = req.body;
+
+        const jobPosition = await JopPosition.findOne({
+            attributes:['id','name'],
+            include: [
+                {
+                    model:Staff,
+                    as:'staff',
+                    attributes:[
+                        'id',
+                        'firstname',
+                        'lastname',
+                        'email',
+                        'folio'
+                    ]
+                },
+                {
+                    model: Equipment,
+                    as:'equipment',
+                    attributes: [
+                        'id',
+                        'image',
+                        'own',
+                        'fixed_asset_type',
+                        'clasification',
+                        'brand',
+                        'model',
+                        'state',
+                        'folio',
+                        'quantity',
+                        'observations',
+                        'inventory_type'
+                    ],
+                    through: {attributes:[]},
+                    include:[
+                        {
+                            model:EquipmentFeatures,
+                            attributes: ['id', 'description'],
+                            as: 'equipmentFeatures'
+                        },
+                    ],
+                    where: {active:true},
+                }
+            ],
+            where:{id:jobPositionId}
+        });
+
+        
+
+        const result = await sequelizeConfig.transaction(async (transaction) => {
+            const resJopPositionHistory = await JopPositionHistory.create(
+                {
+                    firstname:jobPosition.staff.firstname,
+                    lastname:jobPosition.staff.lastname,
+                    email:jobPosition.staff.email,
+                    folio:jobPosition.staff.folio,
+                    jop_position_id:jobPositionId
+                },
+                {transaction}
+            );
+            const equipmentHistoryData = jobPosition.equipment.map(equip => ({
+                image:equip.image,
+                own:equip.own,
+                fixed_asset_type:equip.fixed_asset_type, 
+                clasification:equip.clasification,
+                brand:equip.brand,
+                model:equip.model,
+                state:equip.state,
+                folio:equip.folio,
+                quantity:equip.quantity,
+                observations:equip.observations,
+                inventory_type:equip.inventory_type,
+                jop_position_history_id:resJopPositionHistory.id
+            }));
+
+            console.log(equipmentHistoryData);
+        });
+
+        res.status(201).json({
+            message:'Resucupar puesto de trabajo',
+            // jobPosition:jobPosition
+        });
+        //Continuar guardando el puesto en el hitorial
+    } catch (error) {
+        console.log(error);
+        next(new handleError('Error al desocupar el puesto'));
+    }
+}
+
 module.exports = {
     getJopPositionsNames,
     getJobPositionById,
     getJobPositionsByDepartment,
     getAssetCustodyForm,
     createJobPosition,
+    vacatePosition,
 }

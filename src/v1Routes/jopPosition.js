@@ -39,4 +39,11 @@ router.post('/',
     jobPositionController.createJobPosition
 );
 
+router.post('/vacatePosition', 
+    auth,
+    authorize(['admin']), 
+    validateField('jobPositionId'),
+    jobPositionController.vacatePosition
+);
+
 module.exports = router;

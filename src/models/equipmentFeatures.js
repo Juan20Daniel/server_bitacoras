@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize');
 const { sequelizeConfig } = require('../database/sequelizeConfig');
 
 const EquipmentFeatures = sequelizeConfig.define(
-    'EquipmentVariable',
+    'EquipmentFeatures',
     {
         id: {
             type: DataTypes.INTEGER,
