@@ -98,6 +98,7 @@ JopPositionHistory.belongsTo(JopPosition, {foreignKey:'jop_position_id', as:'jop
 JopPositionHistory.hasMany(EquipmentHistory, {foreignKey:'jop_position_history_id', as:'equipmentHistory'});
 EquipmentHistory.belongsTo(JopPositionHistory, {foreignKey:'jop_position_history_id', as:'jopPositionHistory'})
 
+//Relation between EquipmentHistory and EquipmentHistoryFeatures
 EquipmentHistory.hasMany(EquipmentHistoryFeatures, {foreignKey:'equipment_history_id', as:'equipmentHistoryFeatures'});
 EquipmentHistoryFeatures.belongsTo(EquipmentHistory, {foreignKey:'equipment_history_id', as:'equipmentHistory'});
 

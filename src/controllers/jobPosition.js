@@ -8,7 +8,9 @@ const {
     Staff,
     Camp,
     JopPosition,
-    JopPositionHistory
+    JopPositionHistory,
+    EquipmentHistory,
+    EquipmentHistoryFeatures
 } = require('../models');
 
 const jobPositionById = async (id) => {
@@ -259,6 +261,27 @@ const createJobPosition = async (req, res, next) => {
     }
 }
 
+const equipmentHistoryFeatures = (equipmentsHistory, equipmentsInJobPosition) => {
+    const features = [];
+    for(const index in equipmentsInJobPosition) {
+        if(!equipmentsInJobPosition[index].equipmentFeatures.length) continue;
+        
+        const equipmentFolio = equipmentsInJobPosition[index].folio;
+        const featureHistoryId = equipmentsHistory.find(e => e.folio === equipmentFolio).id;
+        
+
+        const result = equipmentsInJobPosition[index].equipmentFeatures.map(feature => {
+            return {
+                description:feature.description,
+                equipment_history_id:featureHistoryId
+            }
+        });
+        features.push(result);
+    }
+
+    return features.flat();
+}
+
 const vacatePosition = async (req, res, next) => {
     try {
         const { jobPositionId } = req.body;
@@ -308,9 +331,7 @@ const vacatePosition = async (req, res, next) => {
             where:{id:jobPositionId}
         });
 
-        
-
-        const result = await sequelizeConfig.transaction(async (transaction) => {
+        await sequelizeConfig.transaction(async (transaction) => {
             const resJopPositionHistory = await JopPositionHistory.create(
                 {
                     firstname:jobPosition.staff.firstname,
@@ -336,14 +357,31 @@ const vacatePosition = async (req, res, next) => {
                 jop_position_history_id:resJopPositionHistory.id
             }));
 
-            console.log(equipmentHistoryData);
+            const resEquipmentHistory = await EquipmentHistory.bulkCreate(
+                equipmentHistoryData,
+                {transaction}
+            );
+
+            const historyFeatures = equipmentHistoryFeatures(resEquipmentHistory, jobPosition.equipment);
+
+            await EquipmentHistoryFeatures.bulkCreate(
+                historyFeatures,
+                {transaction}
+            );
+
+            await Staff.update(
+                {jop_position_id:null},
+                {   
+                    where:{id:jobPosition.staff.id},
+                    transaction
+                }
+            );
         });
 
         res.status(201).json({
-            message:'Resucupar puesto de trabajo',
-            // jobPosition:jobPosition
+            message:'Puesto de trabajo desocupado',
         });
-        //Continuar guardando el puesto en el hitorial
+       
     } catch (error) {
         console.log(error);
         next(new handleError('Error al desocupar el puesto'));
