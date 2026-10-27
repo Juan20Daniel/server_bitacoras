@@ -7,7 +7,6 @@ router.get('/',
     auth,
     authorize(['operator','admin']),
     validateField('page', false),
-    validateField('departmentId', false),
     employeeController.getEmployees
 );
 

@@ -58,7 +58,6 @@ const getEmployeeById = async (req, res, next) => {
 const getEmployees = async (req, res, next) => {
   try {
     const page = normalizeQueryParams(req.query.page);
-    const departmentId = normalizeQueryParams(req.query.departmentId);
     const pageSize = 20;
 
     const where = {};
@@ -67,10 +66,6 @@ const getEmployees = async (req, res, next) => {
       where.active = req.query.active === 'true'
         ? true
         : false
-    }
-   
-    if(req.query.departmentId) {
-      where.department_id = departmentId;
     }
 
     const pagination = req.query.page
@@ -91,20 +86,6 @@ const getEmployees = async (req, res, next) => {
         'folio',
         'title'
       ],
-      include: [
-        {
-          model:Department,
-          attributes: ['id','name', 'inventory_type', 'createdAt', 'active'],
-          include: [
-            {
-              model:Camp,
-              attributes:['id', 'city', 'school_type', 'active'],
-              as:'camp'
-            }
-          ],
-          as:'department',
-        }
-      ],
       where: where,
       ...pagination,
     });
@@ -122,6 +103,7 @@ const getEmployees = async (req, res, next) => {
       employees:employees
     });
   } catch (error) {
+    console.log(error);
     next(new handleError('Error al obtener la lista empleados', "SERVER_ERR"));
   }
 };
