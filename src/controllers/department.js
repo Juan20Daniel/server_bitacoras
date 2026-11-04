@@ -515,6 +515,16 @@ const getAssetCustodyForm = async (req, res, next) => {
         if(!req.query.jobPositionId) {
             next(new handleError('El jobPositionId es requerido', "SERVER_ERR"));
         }
+
+        const employee = await Staff.findOne({
+            attributes:['id', 'firstname','lastname'],
+            where:{jop_position_id:req.query.jobPositionId}
+        });
+
+        if(!employee) {
+            return next(new handleError('No hay empleado asignado','VALIDATION_ERR'))
+        }
+
         whereJobPosition.id = normalizeQueryParams(req.query.jobPositionId);
 
         const equipments = await Equipment.findAll({

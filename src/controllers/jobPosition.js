@@ -168,6 +168,16 @@ const getAssetCustodyForm = async (req, res, next) => {
         if(!req.query.jobPositionId) {
             next(new handleError('El jobPositionId es requerido', "SERVER_ERR"));
         }
+
+        const employee = await Staff.findOne({
+            attributes:['id', 'firstname','lastname'],
+            where:{jop_position_id:req.query.jobPositionId}
+        });
+
+        if(!employee) {
+            return next(new handleError('No hay empleado asignado','VALIDATION_ERR'));
+        }
+
         whereJobPosition.id = normalizeQueryParams(req.query.jobPositionId);
 
         const equipments = await Equipment.findAll({
@@ -388,6 +398,42 @@ const vacatePosition = async (req, res, next) => {
     }
 }
 
+const assignPosition = async (req, res, next) => {
+    try {
+        const { jobPositionId, employeeId } = req.body;
+
+        await Staff.update(
+            {jop_position_id:+jobPositionId},
+            {where:{id:employeeId}}
+        );
+
+        const employee = await Staff.findOne({
+            model: Staff,
+            attributes: [
+                'id', 
+                'firstname',
+                'lastname',
+                'email',
+                'active',
+                'role',
+                'folio',
+                'title'
+            ],
+            as: 'staff',
+            
+            where:{id:employeeId}
+        });
+
+        res.status(201).json({
+            message:'Puesto de trabajo asignado',
+            employee
+        });
+    } catch (error) {
+        console.log(error);
+        next(new handleError('Error al asignar el puesto'));
+    }
+}
+
 module.exports = {
     getJopPositionsNames,
     getJobPositionById,
@@ -395,4 +441,5 @@ module.exports = {
     getAssetCustodyForm,
     createJobPosition,
     vacatePosition,
+    assignPosition
 }
