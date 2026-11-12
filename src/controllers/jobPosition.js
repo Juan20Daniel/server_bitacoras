@@ -159,7 +159,6 @@ const getJobPositionsByDepartment = async (req, res, next) => {
     }
 }
 
-
 const getAssetCustodyForm = async (req, res, next) => {
     try {
         const { departmentId } = req.params;
@@ -248,6 +247,39 @@ const getAssetCustodyForm = async (req, res, next) => {
         });
     } catch (error) {
         next(new handleError('Error al obtener los equipos', "SERVER_ERR"));
+    }
+}
+
+const getHistory = async (req, res, next) => {
+    try {
+        const { jobPositionId } = req.params;
+        const page =  normalizeQueryParams(req.query.page);
+        const pageSize = 5;
+
+        const history = await JopPositionHistory.findAll({
+            attributes:[
+                'id',
+                'firstname',
+                'lastname',
+                'email',
+                'folio',
+                'createdAt',
+                'updatedAt'
+            ],
+            where: {jop_position_id:jobPositionId},
+            limit:pageSize,
+            offset:(page - 1) * pageSize,
+            
+        });
+
+        res.status(201).json({
+            message: 'Historial de equipo de trabajo',
+            pageSize: pageSize,
+            nextPage: page+1,
+            history: history,
+        });
+    } catch (error) {
+        next(new handleError('Error al obtener el historial del puesto de trabajo', "SERVER_ERR"));
     }
 }
 
@@ -439,6 +471,7 @@ module.exports = {
     getJobPositionById,
     getJobPositionsByDepartment,
     getAssetCustodyForm,
+    getHistory,
     createJobPosition,
     vacatePosition,
     assignPosition

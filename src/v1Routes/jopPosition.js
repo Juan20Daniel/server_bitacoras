@@ -31,6 +31,13 @@ router.get('/assetCustodyForm/:departmentId',
     jobPositionController.getAssetCustodyForm
 );
 
+router.get('/history/:jobPositionId',
+    auth,
+    authorize(['operator','admin']),
+    validateField('jobPositionId'),
+    jobPositionController.getHistory
+);
+
 router.patch('/assign-position',
     auth,
     authorize(['operator','admin']),
