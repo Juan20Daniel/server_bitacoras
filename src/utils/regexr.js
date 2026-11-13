@@ -65,6 +65,7 @@ const regexr = {
     serie: /^[0-9\-]{4,6}$/,
     jopPositionName: /^[A-Za-záÁéÉíÍóÓúÚñÑ ]{3,100}$/,
     jobPositionId: /^[0-9]{1,}$/,
+    jobPositionHistoryId: /^[0-9]{1,}$/,
 }
 
 module.exports = regexr;

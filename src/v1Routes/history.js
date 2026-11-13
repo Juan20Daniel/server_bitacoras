@@ -10,10 +10,11 @@ router.get('/:jobPositionId',
     historyController.getHistory
 );
 
-router.get('/equipments/:jobPositionId',
+router.get('/equipments/:jobPositionHistoryId',
     auth,
     authorize(['operator','admin']),
-    validateField('jobPositionId'),
+    validateField('jobPositionHistoryId'),
+    validateField('inventoryType', false),
     validateField('page', false),
     historyController.historyEquipments
 );

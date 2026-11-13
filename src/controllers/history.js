@@ -25,7 +25,7 @@ const getHistory = async (req, res, next) => {
             where: {jop_position_id:jobPositionId},
             limit:pageSize,
             offset:(page - 1) * pageSize,
-            
+            order:[['id', 'DESC']]
         });
 
         res.status(201).json({
@@ -41,11 +41,10 @@ const getHistory = async (req, res, next) => {
 
 const historyEquipments = async (req, res, next) => {
     try {
-        const {jobPositionId} = req.params;
-        const inventory_type = req.query.inventory_type??'department';
+        const {jobPositionHistoryId} = req.params;
+        const inventoryType = req.query.inventoryType??'department';
         const page = normalizeQueryParams(req.query.page);
-        console.log(page)
-
+        
         const pageSize = 10;
 
         const equipments = await EquipmentHistory.findAll({
@@ -66,8 +65,8 @@ const historyEquipments = async (req, res, next) => {
                 'updatedAt'
             ],
             where:{
-                jop_position_history_id:+jobPositionId,
-                inventory_type:inventory_type
+                jop_position_history_id:+jobPositionHistoryId,
+                inventory_type:inventoryType
             },
             offset:(page - 1) * pageSize,
             limit:pageSize
@@ -75,6 +74,8 @@ const historyEquipments = async (req, res, next) => {
         
         res.status(200).json({
             message: 'Historial de equipo de trabajo',
+            pageSize: pageSize,
+            nextPage: page+1,
             equipments
         });
     } catch (error) {
