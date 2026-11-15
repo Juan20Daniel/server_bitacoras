@@ -3,7 +3,8 @@ const { normalizeQueryParams } = require('../utils/queryParams');
 
 const {
     JopPositionHistory,
-    EquipmentHistory
+    EquipmentHistory,
+    EquipmentHistoryFeatures
 } = require('../models');
 
 const getHistory = async (req, res, next) => {
@@ -62,7 +63,18 @@ const historyEquipments = async (req, res, next) => {
                 'observations',
                 'inventory_type',
                 'createdAt',
-                'updatedAt'
+                'updatedAt',
+                'dep_name',
+                'dep_inventoryType',
+                'camp_city',
+                'camp_schoolType'
+            ],
+            include: [
+                {
+                    model:EquipmentHistoryFeatures,
+                    as: 'equipmentHistoryFeatures',
+                    attributes: ['id','description']
+                }
             ],
             where:{
                 jop_position_history_id:+jobPositionHistoryId,

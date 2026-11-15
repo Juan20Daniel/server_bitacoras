@@ -343,6 +343,26 @@ const vacatePosition = async (req, res, next) => {
                     ]
                 },
                 {
+                    model:Department,
+                    attributes: [
+                        'id',
+                        'name',
+                        'inventory_type'
+                    ],
+                    include: [
+                        {
+                            model:Camp,
+                            attributes:[
+                                'id', 
+                                'city', 
+                                'school_type'
+                            ],
+                            as:'camp'
+                        }
+                    ],
+                    as:'department'
+                },
+                {
                     model: Equipment,
                     as:'equipment',
                     attributes: [
@@ -396,7 +416,11 @@ const vacatePosition = async (req, res, next) => {
                 quantity:equip.quantity,
                 observations:equip.observations,
                 inventory_type:equip.inventory_type,
-                jop_position_history_id:resJopPositionHistory.id
+                jop_position_history_id:resJopPositionHistory.id,
+                dep_name:jobPosition.department.name,
+                dep_inventoryType:jobPosition.department.inventory_type,
+                camp_city:jobPosition.department.camp.city,
+                camp_schoolType:jobPosition.department.camp.school_type
             }));
 
             const resEquipmentHistory = await EquipmentHistory.bulkCreate(
@@ -422,6 +446,7 @@ const vacatePosition = async (req, res, next) => {
 
         res.status(201).json({
             message:'Puesto de trabajo desocupado',
+            jobPosition
         });
        
     } catch (error) {

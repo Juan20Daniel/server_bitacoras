@@ -52,6 +52,22 @@ const EquipmentHistory = sequelizeConfig.define(
         inventory_type: {
             type: DataTypes.ENUM('department','jop_position'),
             defaultValue: 'jop_position'
+        },
+        dep_name: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        dep_inventoryType: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        camp_city: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+        camp_schoolType: {
+            type: DataTypes.STRING,
+            allowNull: false
         }
     },
     {
