@@ -19,4 +19,12 @@ router.get('/equipments/:jobPositionHistoryId',
     historyController.historyEquipments
 );
 
+router.get('/assetCustodyForm/:jobPositionHistoryId',
+    auth,
+    authorize(['operator','admin']),
+    validateField('jobPositionHistoryId'),
+    validateField('inventoryType', false),
+    historyController.getAssetCustodyForm
+);
+
 module.exports = router;
