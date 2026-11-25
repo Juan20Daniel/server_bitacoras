@@ -20,6 +20,7 @@ const getHistory = async (req, res, next) => {
                 'lastname',
                 'email',
                 'folio',
+                'title',
                 'createdAt',
                 'updatedAt'
             ],

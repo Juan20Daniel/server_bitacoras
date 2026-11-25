@@ -339,7 +339,8 @@ const vacatePosition = async (req, res, next) => {
                         'firstname',
                         'lastname',
                         'email',
-                        'folio'
+                        'folio',
+                        'title'
                     ]
                 },
                 {
@@ -400,7 +401,8 @@ const vacatePosition = async (req, res, next) => {
                     lastname:jobPosition.staff.lastname,
                     email:jobPosition.staff.email,
                     folio:jobPosition.staff.folio,
-                    jop_position_id:jobPositionId
+                    jop_position_id:jobPositionId,
+                    title: jobPosition.title
                 },
                 {transaction}
             );

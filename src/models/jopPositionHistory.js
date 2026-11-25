@@ -24,7 +24,11 @@ const JopPositionHistory = sequelizeConfig.define(
         folio: {
             type: DataTypes.STRING,
             allowNull: false,
-        }
+        },
+        title: {
+            type: DataTypes.STRING(10),
+            allowNull: true,
+        },
     },
     {
         tableName: 'jop_position_history',
